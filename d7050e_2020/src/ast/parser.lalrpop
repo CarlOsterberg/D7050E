@@ -7,12 +7,18 @@ grammar;
 pub NumOrId: NumOrId = {
     Num => NumOrId::Num(<>),
     Id => NumOrId::Id(<>),
+    Expr => NumOrId::Expr(<>),
+    Op => NumOrId::Op(<>),
 }
- 
 pub Num: usize = {
     r"[0-9]+" => usize::from_str(<>).unwrap(),
 };
-
 pub Id: String = {
     r"([a-z]|[A-Z])([a-z]|[A-Z]|[0-9]|_)*" => String::from_str(<>).unwrap(),
+};
+pub Expr: String = {
+    r"(([0-9]+)([+]|[-]))+([0-9]+)" => String::from_str(<>).unwrap(),
+};
+pub Op: String = {
+    r"([+]|[-])" => String::from_str(<>).unwrap(),
 };

@@ -7,12 +7,7 @@ use parser::*;
 pub mod ast;
 
 fn main() {
-    println!("minimal");
-    println!("{:?}", NumOrIdParser::new().parse("123"));
-    println!("{:?}", NumOrIdParser::new().parse("a1_a"));
-
-    println!("{}", NumOrIdParser::new().parse("123").unwrap());
-    println!("{}", NumOrIdParser::new().parse("a1_a").unwrap());
+    println!("{:?}", NumOrIdParser::new().parse("1+1-1"));
 }
 
 #[test]
