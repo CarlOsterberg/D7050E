@@ -7,7 +7,6 @@ use parser::*;
 pub mod ast;
 
 fn main() {
-    let b_32 = 1;
     println!("{:?}", ExprParser::new().parse("1*1+2 == 3").unwrap());
 }
 

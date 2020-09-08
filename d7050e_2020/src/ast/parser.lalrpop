@@ -21,6 +21,7 @@ Factor: Box<Expr> = {
 
 pub Term: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
+    Var => Box::new(Expr::Variable(<>))
     "(" <Expr> ")"
 };
 
@@ -41,7 +42,10 @@ FactorOp: Opcode = {
     "*" => Opcode::Mul,
     "/" => Opcode::Div,
 };
-
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
+};
+
+Var: String = {
+    r"([a-z]|[A-Z])([a-z]|[A-Z]|[0-9]|_)*" => String::from_str(<>).unwrap()
 };

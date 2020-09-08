@@ -6,10 +6,12 @@ use std::fmt;
 #[derive(Debug)]
 pub enum Term {
     Num(i32),
+    Var(String),
 }
 #[derive(Debug)]
 pub enum Expr {
     Number(i32),
+    Variable(String),
     Op(Box<Expr>, Opcode, Box<Expr>),
 }
 #[derive(Debug)]
