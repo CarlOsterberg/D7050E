@@ -4,22 +4,27 @@ use std::fmt;
 
 // println!("{:?}", ..)
 #[derive(Debug)]
-pub enum NumOrId {
-    Num(usize),
-    Id(String),
-    Expr(String),
-    Op(String),
+pub enum Term {
+    Num(i32),
+}
+#[derive(Debug)]
+pub enum Expr {
+    Number(i32),
+    Op(Box<Expr>, Opcode, Box<Expr>),
+}
+#[derive(Debug)]
+pub enum Opcode {
+    Mul,
+    Div,
+    Add,
+    Sub,
+    Less,
+    Greater,
+    And,
+    Or,
+    Equals,
+    Not,
 }
 
 // println!("{}", ..)
-impl fmt::Display for NumOrId {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            NumOrId::Num(i) => write!(f, "{}", i)?,
-            NumOrId::Id(s) => write!(f, "{}", s)?,
-            NumOrId::Expr(s) => write!(f, "{}", s)?,
-            NumOrId::Op(s) => write!(f, "{}", s)?,
-        };
-        Ok(())
-    }
-}
+

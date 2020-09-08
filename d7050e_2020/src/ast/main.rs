@@ -7,17 +7,14 @@ use parser::*;
 pub mod ast;
 
 fn main() {
-    println!("{:?}", NumOrIdParser::new().parse("1+1-1"));
+    let b_32 = 1;
+    println!("{:?}", ExprParser::new().parse("1*1+2 == 3").unwrap());
 }
 
 #[test]
-fn parse_num_or_id() {
+fn parse_expr() {
     assert_eq!(
-        format!("{}", NumOrIdParser::new().parse("123").unwrap()),
-        "123"
-    );
-    assert_eq!(
-        format!("{}", NumOrIdParser::new().parse("a1_a").unwrap()),
-        "a1_a"
+        format!("{:?}", ExprParser::new().parse("1>1*1+2").unwrap()),
+        "Op(Number(1), Greater, Op(Op(Number(1), Mul, Number(1)), Add, Number(2)))"
     );
 }

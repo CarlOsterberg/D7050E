@@ -4,21 +4,44 @@ use crate::ast::*;
 
 grammar;
 
-pub NumOrId: NumOrId = {
-    Num => NumOrId::Num(<>),
-    Id => NumOrId::Id(<>),
-    Expr => NumOrId::Expr(<>),
-    Op => NumOrId::Op(<>),
+pub Expr: Box<Expr> = {
+    Expr BoolAlgOp Elemen => Box::new(Expr::Op(<>)),
+    Elemen,
+};
+
+Elemen: Box<Expr> = {
+    Elemen ExprOp Factor => Box::new(Expr::Op(<>)),
+    Factor,
+};
+
+Factor: Box<Expr> = {
+    Factor FactorOp Term => Box::new(Expr::Op(<>)),
+    Term,
+};
+
+pub Term: Box<Expr> = {
+    Num => Box::new(Expr::Number(<>)),
+    "(" <Expr> ")"
+};
+
+BoolAlgOp: Opcode = {
+    "<" => Opcode::Less,
+    ">" => Opcode::Greater,
+    "||" => Opcode::Or,
+    "&&" => Opcode::And,
+    "==" => Opcode::Equals,
 }
-pub Num: usize = {
-    r"[0-9]+" => usize::from_str(<>).unwrap(),
+
+ExprOp: Opcode = {
+    "+" => Opcode::Add,
+    "-" => Opcode::Sub,
 };
-pub Id: String = {
-    r"([a-z]|[A-Z])([a-z]|[A-Z]|[0-9]|_)*" => String::from_str(<>).unwrap(),
+
+FactorOp: Opcode = {
+    "*" => Opcode::Mul,
+    "/" => Opcode::Div,
 };
-pub Expr: String = {
-    r"(([0-9]+)([+]|[-]))+([0-9]+)" => String::from_str(<>).unwrap(),
-};
-pub Op: String = {
-    r"([+]|[-])" => String::from_str(<>).unwrap(),
+
+Num: i32 = {
+    r"[0-9]+" => i32::from_str(<>).unwrap()
 };
