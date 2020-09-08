@@ -9,13 +9,13 @@ pub mod ast;
 fn main() {
     //let a = !2 + 3;
     //println!("{}",a);
-    println!("{:?}", ExprParser::new().parse("1+1").unwrap());
+    println!("{:?}", ExprParser::new().parse("-a - (-b) * y").unwrap());
 }
 
 #[test]
 fn parse_expr() {
     assert_eq!(
-        format!("{:?}", ExprParser::new().parse("1>1*1+2").unwrap()),
+        format!("{:?}", ExprParser::new().parse("2*1").unwrap()),
         "Op(Number(1), Greater, Op(Op(Number(1), Mul, Number(1)), Add, Number(2)))"
     );
 }
