@@ -12,7 +12,8 @@ pub enum Term {
 pub enum Expr {
     Number(i32),
     Variable(String),
-    Op(Box<Expr>, Opcode, Box<Expr>),
+    Infix(Box<Expr>, Opcode, Box<Expr>),
+    Prefix(Opcode, Box<Expr>),
 }
 #[derive(Debug)]
 pub enum Opcode {
@@ -20,6 +21,7 @@ pub enum Opcode {
     Div,
     Add,
     Sub,
+    Negate,
     Less,
     Greater,
     And,

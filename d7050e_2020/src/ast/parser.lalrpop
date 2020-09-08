@@ -5,25 +5,31 @@ use crate::ast::*;
 grammar;
 
 pub Expr: Box<Expr> = {
-    Expr BoolAlgOp Elemen => Box::new(Expr::Op(<>)),
+    Expr BoolAlgOp Elemen => Box::new(Expr::Infix(<>)),
     Elemen,
 };
 
 Elemen: Box<Expr> = {
-    Elemen ExprOp Factor => Box::new(Expr::Op(<>)),
+    Elemen ExprOp Factor => Box::new(Expr::Infix(<>)),
     Factor,
 };
 
 Factor: Box<Expr> = {
-    Factor FactorOp Term => Box::new(Expr::Op(<>)),
+    Factor FactorOp Term => Box::new(Expr::Infix(<>)),
     Term,
 };
 
 pub Term: Box<Expr> = {
+    PrefixOp Term => Box::new(Expr::Prefix(<>)),
     Num => Box::new(Expr::Number(<>)),
-    Var => Box::new(Expr::Variable(<>))
+    Var => Box::new(Expr::Variable(<>)),
     "(" <Expr> ")"
 };
+
+PrefixOp: Opcode = {
+    "-" => Opcode::Negate,
+    "!" => Opcode::Not,
+}
 
 BoolAlgOp: Opcode = {
     "<" => Opcode::Less,
@@ -31,7 +37,7 @@ BoolAlgOp: Opcode = {
     "||" => Opcode::Or,
     "&&" => Opcode::And,
     "==" => Opcode::Equals,
-}
+};
 
 ExprOp: Opcode = {
     "+" => Opcode::Add,
