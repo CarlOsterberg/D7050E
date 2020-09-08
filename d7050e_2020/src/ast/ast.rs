@@ -32,3 +32,14 @@ pub enum Opcode {
 
 // println!("{}", ..)
 
+/*impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Expr::Number(i) => write!(f, "{}", i)?,
+            Expr::Variable(s) => write!(f, "{}", s)?,
+            Expr::Infix() => write!(f, "{}", )?,
+            Expr::Prefix() => write!(f, "{}", )?,
+        };
+        Ok(())
+    }
+}*/
