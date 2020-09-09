@@ -1,8 +1,26 @@
-use std::fmt;
+//use std::fmt;
 
 // ast
 
 // println!("{:?}", ..)
+
+#[derive(Debug)]
+pub enum Stmnt {
+    Let(Readability,String,VarType,Box<Expr>),
+    //If(StmntType,Box<Expr>,Box<Stmnt>),
+    //While(StmntType,Box<Expr>,Box<Stmnt>),
+}
+#[derive(Debug)]
+pub enum Readability {
+    Read,
+    Mut,
+}
+#[derive(Debug)]
+pub enum VarType {
+    I32,
+    Bool,
+}
+
 #[derive(Debug)]
 pub enum Term {
     Num(i32),
@@ -31,8 +49,8 @@ pub enum Opcode {
 }
 
 // println!("{}", ..)
-
-/*impl fmt::Display for Expr {
+/*
+impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Expr::Number(i) => write!(f, "{}", i)?,
@@ -42,4 +60,5 @@ pub enum Opcode {
         };
         Ok(())
     }
-}*/
+}
+*/

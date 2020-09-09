@@ -4,6 +4,25 @@ use crate::ast::*;
 
 grammar;
 
+pub Stmnt: Box<Stmnt> = {
+    Read Var Type Expr => Box::new(Stmnt::Let(<>)),
+    
+};
+
+Read: Readability = {
+    "let mut" => Readability::Mut,
+    "let" => Readability::Read,
+};
+
+Type: VarType = {
+    r": ?i32" => VarType::I32,
+    r": ?bool" => VarType::Bool,
+};
+
+//-----------------------------------------------------
+//Expression
+//-----------------------------------------------------
+
 pub Expr: Box<Expr> = {
     Expr BoolAlgOp Elemen => Box::new(Expr::Infix(<>)),
     Elemen,
@@ -19,17 +38,20 @@ Factor: Box<Expr> = {
     Term,
 };
 
-pub Term: Box<Expr> = {
+Term: Box<Expr> = {
     PrefixOp Term => Box::new(Expr::Prefix(<>)),
+    //Bool => Box::new(Expr::Bool(<>)),
     Num => Box::new(Expr::Number(<>)),
     Var => Box::new(Expr::Variable(<>)),
     "(" <Expr> ")"
 };
 
+//translations into operands
+
 PrefixOp: Opcode = {
     "-" => Opcode::Negate,
     "!" => Opcode::Not,
-}
+};
 
 BoolAlgOp: Opcode = {
     "<" => Opcode::Less,
@@ -48,10 +70,13 @@ FactorOp: Opcode = {
     "*" => Opcode::Mul,
     "/" => Opcode::Div,
 };
+
+//base terms, true false bools to be added
+
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
 };
 
 Var: String = {
-    r"([a-z]|[A-Z])([a-z]|[A-Z]|[0-9]|_)*" => String::from_str(<>).unwrap()
+    r"(_|[a-z]|[A-Z])([a-z]|[A-Z]|[0-9]|_)*" => String::from_str(<>).unwrap(),
 };

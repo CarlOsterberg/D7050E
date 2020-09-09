@@ -1,7 +1,7 @@
 [package]
 name = "d7050e_2020"
 version = "0.1.0"
-authors = ["Per Lindgren <per.lindgren@ltu.se>"]
+authors = ["Carl Österberg <carl.vilhelms.osterberg@gmail.com>"]
 edition = "2018"
 
 build = "build.rs" # LALRPOP preprocessing

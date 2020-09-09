@@ -7,9 +7,8 @@ use parser::*;
 pub mod ast;
 
 fn main() {
-    //let a = !2 + 3;
-    //println!("{}",a);
-    println!("{:?}", ExprParser::new().parse("-a - (-b) * y").unwrap());
+    //let _a:i32 = 22;
+    println!("{:?}", StmntParser::new().parse("let mut a:i32 123"));
 }
 
 #[test]
