@@ -8,7 +8,7 @@ pub mod ast;
 
 fn main() {
     //let _a:i32 = 22;
-    println!("{:?}", StmntParser::new().parse("let mut a:i32 123"));
+    println!("{:?}", StmntParser::new().parse("let akasjd:i32=123+213-1;"));
 }
 
 #[test]

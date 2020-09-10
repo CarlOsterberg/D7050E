@@ -5,18 +5,27 @@ use crate::ast::*;
 grammar;
 
 pub Stmnt: Box<Stmnt> = {
-    Read Var Type Expr => Box::new(Stmnt::Let(<>)),
+    Read Name Type Assign => Box::new(Stmnt::Let(<>)),
     
 };
 
-Read: Readability = {
-    "let mut" => Readability::Mut,
-    "let" => Readability::Read,
+Read: Box<Stmnt> = {
+    "let mut" => Box::new(Stmnt::Readability(String::from_str("Mutable").unwrap())),
+    "let" => Box::new(Stmnt::Readability(String::from_str("Readable").unwrap())),
 };
 
-Type: VarType = {
-    r": ?i32" => VarType::I32,
-    r": ?bool" => VarType::Bool,
+Name: Box<Stmnt> = {
+    Var => Box::new(Stmnt::Name(<>)),
+};
+
+Type: Box<Stmnt> = {
+    r": ?i32" => Box::new(Stmnt::Type(String::from_str("i32").unwrap())),
+    r": ?bool" => Box::new(Stmnt::Type(String::from_str("bool").unwrap())),
+};
+
+Assign: Box<Expr> = {
+    "=" <Expr> ";" ,
+    Expr,
 };
 
 //-----------------------------------------------------

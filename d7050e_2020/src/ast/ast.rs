@@ -6,19 +6,12 @@
 
 #[derive(Debug)]
 pub enum Stmnt {
-    Let(Readability,String,VarType,Box<Expr>),
+    Readability(String),
+    Type(String),
+    Name(String),
+    Let(Box<Stmnt>,Box<Stmnt>,Box<Stmnt>,Box<Expr>),
     //If(StmntType,Box<Expr>,Box<Stmnt>),
     //While(StmntType,Box<Expr>,Box<Stmnt>),
-}
-#[derive(Debug)]
-pub enum Readability {
-    Read,
-    Mut,
-}
-#[derive(Debug)]
-pub enum VarType {
-    I32,
-    Bool,
 }
 
 #[derive(Debug)]
