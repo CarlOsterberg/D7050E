@@ -10,7 +10,7 @@ pub enum Stmnt {
     Type(String),
     Name(String),
     Let(Box<Stmnt>,Box<Stmnt>,Box<Stmnt>,Box<Expr>),
-    //If(StmntType,Box<Expr>,Box<Stmnt>),
+    //If(Box<Stmnt>,Box<Expr>),
     //While(StmntType,Box<Expr>,Box<Stmnt>),
 }
 
