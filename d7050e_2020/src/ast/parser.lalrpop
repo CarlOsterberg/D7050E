@@ -4,23 +4,18 @@ use crate::ast::*;
 
 grammar;
 
-pub Stmnt: Box<Stmnt> = {
-    Read Name Type Assign => Box::new(Stmnt::Let(<>)),
-    
+//-----------------------------------------------------
+//Statement
+//-----------------------------------------------------
+
+Read: String = {
+    "let mut" => String::from_str("Mutable").unwrap(),
+    "let" => String::from_str("Readable").unwrap(),
 };
 
-Read: Box<Stmnt> = {
-    "let mut" => Box::new(Stmnt::Readability(String::from_str("Mutable").unwrap())),
-    "let" => Box::new(Stmnt::Readability(String::from_str("Readable").unwrap())),
-};
-
-Name: Box<Stmnt> = {
-    Var => Box::new(Stmnt::Name(<>)),
-};
-
-Type: Box<Stmnt> = {
-    r": ?i32" => Box::new(Stmnt::Type(String::from_str("i32").unwrap())),
-    r": ?bool" => Box::new(Stmnt::Type(String::from_str("bool").unwrap())),
+Type: Box<Expr> = {
+    r": ?i32" => Box::new(Expr::Type(String::from_str("i32").unwrap())),
+    r": ?bool" => Box::new(Expr::Type(String::from_str("bool").unwrap())),
 };
 
 Assign: Box<Expr> = {
@@ -33,7 +28,12 @@ Assign: Box<Expr> = {
 //-----------------------------------------------------
 
 pub Expr: Box<Expr> = {
-    Expr BoolAlgOp Elemen => Box::new(Expr::Infix(<>)),
+    Read Var Type Assign => Box::new(Expr::Let(<>)),
+    BoolAlg,
+};
+
+BoolAlg: Box<Expr> = {
+    BoolAlg BoolAlgOp Elemen => Box::new(Expr::Infix(<>)),
     Elemen,
 };
 
@@ -49,8 +49,8 @@ Factor: Box<Expr> = {
 
 Term: Box<Expr> = {
     PrefixOp Term => Box::new(Expr::Prefix(<>)),
-    //Bool => Box::new(Expr::Bool(<>)),
     Num => Box::new(Expr::Number(<>)),
+    Bool => Box::new(Expr::Boolean(<>)),
     Var => Box::new(Expr::Variable(<>)),
     "(" <Expr> ")"
 };
@@ -80,10 +80,15 @@ FactorOp: Opcode = {
     "/" => Opcode::Div,
 };
 
-//base terms, true false bools to be added
+//base terms, i32, 
 
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
+};
+
+Bool: bool = {
+    "true" => bool::from_str(<>).unwrap(),
+    "false" => bool::from_str(<>).unwrap(),
 };
 
 Var: String = {

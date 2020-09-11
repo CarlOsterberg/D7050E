@@ -6,9 +6,10 @@ use parser::*;
 
 pub mod ast;
 
+
 fn main() {
-    //let _a:i32 = 22;
-    println!("{:?}", StmntParser::new().parse("let akasjd:i32=123+213-1;"));
+    //let _true:i32 = 22;
+    println!("{:?}", ExprParser::new().parse("let mut asjdak:i32=6;"));
 }
 
 #[test]
