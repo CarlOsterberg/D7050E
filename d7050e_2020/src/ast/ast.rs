@@ -19,7 +19,8 @@ pub enum Expr {
     Infix(Box<Expr>, Opcode, Box<Expr>),
     Prefix(Opcode, Box<Expr>),
     Type(String),
-    Let(String,String,Box<Expr>,Box<Expr>),
+    Let(String,String,String,Box<Expr>),
+    While(Box<Expr>, Vec<Box<Expr>>),
 }
 #[derive(Debug)]
 pub enum Opcode {
@@ -35,6 +36,7 @@ pub enum Opcode {
     Equals,
     Not,
 }
+
 
 // println!("{}", ..)
 
@@ -65,6 +67,7 @@ impl fmt::Display for Expr {
             Expr::Boolean(b) => write!(f, "{}", b)?,
             Expr::Infix(a,b,c) => write!(f, "({} {} {})", format!("{}", a), format!("{}", b), format!("{}", c))?,
             Expr::Prefix(a,b) => write!(f, "({} {})", format!("{}", a), format!("{}", b))?,
+            //Expr::Let(a,b,c,d) => write!(f, "({} {} :{} ={};)", format!("{}", a), format!("{}", b), format!("{}", c), format!("{}", d))?,
             _ => panic!("error"),
         };
         Ok(())

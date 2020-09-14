@@ -13,14 +13,53 @@ Read: String = {
     "let" => String::from_str("Readable").unwrap(),
 };
 
-Type: Box<Expr> = {
-    r": ?i32" => Box::new(Expr::Type(String::from_str("i32").unwrap())),
-    r": ?bool" => Box::new(Expr::Type(String::from_str("bool").unwrap())),
+Type: String = {
+    ":" <Var>,
 };
 
 Assign: Box<Expr> = {
-    "=" <Expr> ";" ,
-    Expr,
+    "=" <Expr> ,
+};
+
+While: Box<Expr> = {
+    "while" <BoolAlg>,
+}
+
+Do: Vec<Box<Expr>> = {
+    "{"<Stmnts>"}",
+}
+Stmnts = SemiColon<Expr>;
+
+SemiColon<T>: Vec<T> = {
+    <v:(<T> ";")*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};
+ClosingBracket<T>: Vec<T> = {
+    <v:(<T> "}")*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};
+
+Comma<T>: Vec<T> = {
+    <v:(<T> ",")*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
 };
 
 //-----------------------------------------------------
@@ -29,6 +68,7 @@ Assign: Box<Expr> = {
 
 pub Expr: Box<Expr> = {
     Read Var Type Assign => Box::new(Expr::Let(<>)),
+    While Do => Box::new(Expr::While(<>)),
     BoolAlg,
 };
 
