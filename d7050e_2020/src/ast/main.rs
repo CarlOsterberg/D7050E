@@ -6,17 +6,19 @@ use parser::*;
 
 pub mod ast;
 
-
 fn main() {
-    //let _true:i32 = 22;
-    println!("{:?}", ExprParser::new().parse("while 89>x {while x>0{a};while x>0{a}}"));
+    //println!("{:?}", StmntParser::new().parse("fn a(x:i32,y:bool) -> i32 {while (x<3) {x=x+1;}}"));
     //println!("{}", ExprParser::new().parse("-6+1*88").unwrap());
 }
 
 #[test]
-fn parse_expr() {
-    assert_eq!(
-        format!("{:?}", ExprParser::new().parse("2*1").unwrap()),
-        "Op(Number(1), Greater, Op(Op(Number(1), Mul, Number(1)), Add, Number(2)))"
-    );
+fn parse_stmnt() {
+    assert!(StmntParser::new().parse("fn a(x:i32,y:bool) -> i32 {while (x<3) {x=x+1;y=false;}if true {b=b;}else {a=a;}}").is_ok());
+    assert!(StmntParser::new().parse("let a:i32 = if true {b=b;}else {a=a;};").is_ok());
+    assert!(StmntParser::new().parse("a=if true {b=b;}else {a=a;};").is_ok());
+    assert!(StmntParser::new().parse("if true {b=b;}else {a=a;}").is_ok());
+    assert!(StmntParser::new().parse("let mut a:i32 = 1;").is_ok());
+    assert!(StmntParser::new().parse("let a:bool = true;").is_ok());
+    assert!(StmntParser::new().parse("while (x==5) {let x:i32 = 0;let x:i32 = 0;if true {b=b;}else {a=a;}}").is_ok());
+    assert!(StmntParser::new().parse("a=5+5*3;").is_ok());
 }

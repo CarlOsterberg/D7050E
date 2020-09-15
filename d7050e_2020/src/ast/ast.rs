@@ -12,16 +12,33 @@ pub enum Term {
     Bool(bool),
 }
 #[derive(Debug)]
-pub enum Expr {
+pub enum Root {
     Number(i32),
     Variable(String),
     Boolean(bool),
-    Infix(Box<Expr>, Opcode, Box<Expr>),
-    Prefix(Opcode, Box<Expr>),
-    Type(String),
-    Let(String,String,String,Box<Expr>),
-    While(Box<Expr>, Vec<Box<Expr>>),
+    Infix(Box<Root>, Opcode, Box<Root>),
+    Prefix(Opcode, Box<Root>),
+    Assign(String, Box<Root>,Option<Box<Root>>),
+    Let(String,String,String,Box<Root>,Option<Box<Root>>),
+    While(Box<Root>,Box<Root>,Option<Box<Root>>),
+    If(Box<Root>,Box<Root>,Option<Box<Root>>,Option<Box<Root>>),
+    Func(String, Vec<(String,String)>, String, Box<Root>, Option<Box<Root>>),
 }
+
+impl Root {
+    pub fn next(&mut self, next_root: Root) {
+        match *self {
+            Root::While(.., ref mut next)
+            |Root::Let(.., ref mut next) 
+            |Root::Assign(.., ref mut next)
+            |Root::If(.., ref mut next)=> {
+                *next = Some(Box::new(next_root))
+            }
+            _ => panic!("Das root be fukkd"),
+        };
+    }
+}
+
 #[derive(Debug)]
 pub enum Opcode {
     Mul,
@@ -59,15 +76,15 @@ impl fmt::Display for Opcode {
     }
 }
 
-impl fmt::Display for Expr {
+impl fmt::Display for Root {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Expr::Number(i) => write!(f, "{}", i)?,
-            Expr::Variable(s) => write!(f, "{}", s)?,
-            Expr::Boolean(b) => write!(f, "{}", b)?,
-            Expr::Infix(a,b,c) => write!(f, "({} {} {})", format!("{}", a), format!("{}", b), format!("{}", c))?,
-            Expr::Prefix(a,b) => write!(f, "({} {})", format!("{}", a), format!("{}", b))?,
-            //Expr::Let(a,b,c,d) => write!(f, "({} {} :{} ={};)", format!("{}", a), format!("{}", b), format!("{}", c), format!("{}", d))?,
+            Root::Number(i) => write!(f, "{}", i)?,
+            Root::Variable(s) => write!(f, "{}", s)?,
+            Root::Boolean(b) => write!(f, "{}", b)?,
+            Root::Infix(a,b,c) => write!(f, "({} {} {})", format!("{}", a), format!("{}", b), format!("{}", c))?,
+            Root::Prefix(a,b) => write!(f, "({} {})", format!("{}", a), format!("{}", b))?,
+            //Root::Let(a,b,c,d) => write!(f, "({} {} :{} ={};)", format!("{}", a), format!("{}", b), format!("{}", c), format!("{}", d))?,
             _ => panic!("error"),
         };
         Ok(())

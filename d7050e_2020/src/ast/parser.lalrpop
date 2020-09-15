@@ -7,49 +7,25 @@ grammar;
 //-----------------------------------------------------
 //Statement
 //-----------------------------------------------------
-
-Read: String = {
-    "let mut" => String::from_str("Mutable").unwrap(),
-    "let" => String::from_str("Readable").unwrap(),
-};
-
-Type: String = {
-    ":" <Var>,
-};
-
-Assign: Box<Expr> = {
-    "=" <Expr> ,
-};
-
-While: Box<Expr> = {
-    "while" <BoolAlg>,
+Func: Box<Root> = {
+    "fn" <n:Var> "("<arg:FnArg>")" "->"<t:Var> <b:Body> => Box::new(Root::Func(
+        n,
+        arg,
+        t,
+        b,
+        None
+    )),
 }
 
-Do: Vec<Box<Expr>> = {
-    "{"<Stmnts>"}",
+FnArg: Vec<(String,String)> = {
+    ArgList
 }
-Stmnts = SemiColon<Expr>;
 
-SemiColon<T>: Vec<T> = {
-    <v:(<T> ";")*> <e:T?> => match e {
-        None => v,
-        Some(e) => {
-            let mut v = v;
-            v.push(e);
-            v
-        }
-    }
-};
-ClosingBracket<T>: Vec<T> = {
-    <v:(<T> "}")*> <e:T?> => match e {
-        None => v,
-        Some(e) => {
-            let mut v = v;
-            v.push(e);
-            v
-        }
-    }
-};
+ArgType: (String,String) = {
+    <Var>":"<Var>
+}
+
+ArgList = Comma<ArgType>;
 
 Comma<T>: Vec<T> = {
     <v:(<T> ",")*> <e:T?> => match e {
@@ -62,36 +38,110 @@ Comma<T>: Vec<T> = {
     }
 };
 
+Assign: Box<Root> = {
+    <n:Var> "=" <e:Stmnt> ";" => Box::new(Root::Assign(
+        n,
+        e,
+        None
+    )),
+    <n:Var> "=" <e:Expr> ";" => Box::new(Root::Assign(
+        n,
+        e,
+        None
+    )),
+    
+};
+
+Let: Box<Root> = {
+    "let" <m:"mut"?> <n:Var>":"<t:Var> "=" <e:Stmnt> ";" => Box::new(Root::Let(
+        if let Some(_) = m {"mut".to_string()} else {"read".to_string()},
+        n,
+        t,
+        e,
+        None
+    )),
+    "let" <m:"mut"?> <n:Var>":"<t:Var> "=" <e:Expr> ";" => Box::new(Root::Let(
+        if let Some(_) = m {"mut".to_string()} else {"read".to_string()},
+        n,
+        t,
+        e,
+        None
+    ))
+};
+
+If: Box<Root> = {
+    "if" <e:Expr> <ib:Body> => Box::new(Root::If(
+        e,
+        ib,
+        None,
+        None,
+    )),
+    "if" <e:Expr> <ib:Body> "else" <eb:Body> => Box::new(Root::If(
+        e,
+        ib,
+        Some(eb),
+        None,
+    )),
+}
+
+While: Box<Root> = {
+    "while" <e:Expr> <b:Body>=> Box::new(Root::While(
+        e,
+        b,
+        None
+    ))
+}
+
+Body: Box<Root> = {
+    "{" <Stmnts> "}"
+}
+
+Stmnts: Box<Root> = {
+    <mut s1:Stmnt> <s2:Stmnts?> => match s2 {
+        None => s1,
+        Some(root) => {
+            s1.next(*root);
+            s1
+        }
+    }
+}
+
+
 //-----------------------------------------------------
 //Expression
 //-----------------------------------------------------
+pub Stmnt: Box<Root> = {
+    Func,
+    While,
+    Let,
+    Assign,
+    If,
+}
 
-pub Expr: Box<Expr> = {
-    Read Var Type Assign => Box::new(Expr::Let(<>)),
-    While Do => Box::new(Expr::While(<>)),
+Expr: Box<Root> = {
     BoolAlg,
 };
 
-BoolAlg: Box<Expr> = {
-    BoolAlg BoolAlgOp Elemen => Box::new(Expr::Infix(<>)),
+BoolAlg: Box<Root> = {
+    BoolAlg BoolAlgOp Elemen => Box::new(Root::Infix(<>)),
     Elemen,
 };
 
-Elemen: Box<Expr> = {
-    Elemen ExprOp Factor => Box::new(Expr::Infix(<>)),
+Elemen: Box<Root> = {
+    Elemen ExprOp Factor => Box::new(Root::Infix(<>)),
     Factor,
 };
 
-Factor: Box<Expr> = {
-    Factor FactorOp Term => Box::new(Expr::Infix(<>)),
+Factor: Box<Root> = {
+    Factor FactorOp Term => Box::new(Root::Infix(<>)),
     Term,
 };
 
-Term: Box<Expr> = {
-    PrefixOp Term => Box::new(Expr::Prefix(<>)),
-    Num => Box::new(Expr::Number(<>)),
-    Bool => Box::new(Expr::Boolean(<>)),
-    Var => Box::new(Expr::Variable(<>)),
+Term: Box<Root> = {
+    PrefixOp Term => Box::new(Root::Prefix(<>)),
+    Num => Box::new(Root::Number(<>)),
+    Bool => Box::new(Root::Boolean(<>)),
+    Var => Box::new(Root::Variable(<>)),
     "(" <Expr> ")"
 };
 
@@ -120,7 +170,7 @@ FactorOp: Opcode = {
     "/" => Opcode::Div,
 };
 
-//base terms, i32, 
+//base terms, i32, bool 
 
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
@@ -129,7 +179,7 @@ Num: i32 = {
 Bool: bool = {
     "true" => bool::from_str(<>).unwrap(),
     "false" => bool::from_str(<>).unwrap(),
-};
+}; 
 
 Var: String = {
     r"(_|[a-z]|[A-Z])([a-z]|[A-Z]|[0-9]|_)*" => String::from_str(<>).unwrap(),
