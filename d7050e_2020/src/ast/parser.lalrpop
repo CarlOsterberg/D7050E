@@ -8,6 +8,19 @@ grammar;
 //Statement
 //-----------------------------------------------------
 
+If: Box<Expr> = {
+    "if" <e:Expr> <ib:Body> => Box::new(Expr::If(
+        e,
+        ib,
+        None,
+    )),
+    "if" <e:Expr> <ib:Body> r"; ?else" <eb:Body> => Box::new(Expr::If(
+        e,
+        ib,
+        Some(eb),
+    )),
+}
+
 Read: String = {
     "let mut" => String::from_str("Mutable").unwrap(),
     "let" => String::from_str("Readable").unwrap(),
@@ -31,7 +44,7 @@ Body: Vec<Box<Expr>> = {
 Stmnts = SemiColon<Expr>;
 
 SemiColon<T>: Vec<T> = {
-    <v:(<T> ";")*> <e:T?> => match e {
+    <v:(<T> ";")*> <e:BoolAlg?> => match e {
         None => v,
         Some(e) => {
             let mut v = v;
@@ -57,6 +70,7 @@ Comma<T>: Vec<T> = {
 //-----------------------------------------------------
 
 pub Expr: Box<Expr> = {
+    If,
     Read Var Type Assign => Box::new(Expr::Let(<>)),
     While Body => Box::new(Expr::While(<>)),
     BoolAlg,

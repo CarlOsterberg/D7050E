@@ -21,6 +21,7 @@ pub enum Expr {
     Type(String),
     Let(String,String,String,Box<Expr>),
     While(Box<Expr>, Vec<Box<Expr>>),
+    If(Box<Expr>,Vec<Box<Expr>>,Option<Vec<Box<Expr>>>),
 }
 #[derive(Debug)]
 pub enum Opcode {
