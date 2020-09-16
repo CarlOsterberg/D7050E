@@ -7,6 +7,31 @@ grammar;
 //-----------------------------------------------------
 //Statement
 //-----------------------------------------------------
+Func: Box<Expr> = {
+    "fn" <n:Var> "("<arg:FnArg>")" "->"<t:Var> <b:Body> => Box::new(Expr::Func(
+        n,
+        arg,
+        t,
+        b,
+    )),
+    "fn" <n:Var> "()" "->"<t:Var> <b:Body> => Box::new(Expr::Func(
+        n,
+        vec!(),
+        t,
+        b,
+    )),
+}
+
+FnArg: Vec<(String,String)> = {
+    ArgList
+}
+
+ArgType: (String,String) = {
+    <Var>":"<Var>
+}
+
+ArgList = Comma<ArgType>;
+
 
 If: Box<Expr> = {
     "if" <e:Expr> <ib:Body> => Box::new(Expr::If(
@@ -79,6 +104,7 @@ Comma<T>: Vec<T> = {
 pub Expr: Box<Expr> = {
     If,
     Assign,
+    Func,
     Read Var Type Let => Box::new(Expr::Let(<>)),
     While Body => Box::new(Expr::While(<>)),
     BoolAlg,

@@ -23,6 +23,7 @@ pub enum Expr {
     Let(String,String,String,Box<Expr>),
     While(Box<Expr>, Vec<Box<Expr>>),
     If(Box<Expr>,Vec<Box<Expr>>,Option<Vec<Box<Expr>>>),
+    Func(String,Vec<(String,String)>,String,Vec<Box<Expr>>)
 }
 #[derive(Debug)]
 pub enum Opcode {
