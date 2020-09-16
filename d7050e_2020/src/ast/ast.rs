@@ -11,6 +11,14 @@ pub enum Term {
     Var(String),
     Bool(bool),
 }
+
+
+#[derive(Debug)]
+pub enum Type {
+    Unit,
+    I32,
+    Bool,
+}
 #[derive(Debug)]
 pub enum Root {
     Number(i32),
@@ -18,18 +26,21 @@ pub enum Root {
     Boolean(bool),
     Infix(Box<Root>, Opcode, Box<Root>),
     Prefix(Opcode, Box<Root>),
+    FuncCall(String, Vec<Box<Root>>),
     Assign(String, Box<Root>,Option<Box<Root>>),
-    Let(String,String,String,Box<Root>,Option<Box<Root>>),
+    Let(String,String,Type,Box<Root>,Option<Box<Root>>),
     While(Box<Root>,Box<Root>,Option<Box<Root>>),
     If(Box<Root>,Box<Root>,Option<Box<Root>>,Option<Box<Root>>),
-    Func(String, Vec<(String,String)>, String, Box<Root>, Option<Box<Root>>),
+    Func(String, Vec<(String,Type)>, Type, Box<Root>, Option<Box<Root>>),
+    Return(Box<Root>),
 }
 
 impl Root {
-    pub fn next(&mut self, next_root: Root) {
+    pub fn next(&mut self, next_root:Root) {
         match *self {
             Root::While(.., ref mut next)
             |Root::Let(.., ref mut next) 
+            |Root::Func(.., ref mut next)
             |Root::Assign(.., ref mut next)
             |Root::If(.., ref mut next)=> {
                 *next = Some(Box::new(next_root))

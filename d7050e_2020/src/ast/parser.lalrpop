@@ -7,25 +7,42 @@ grammar;
 //-----------------------------------------------------
 //Statement
 //-----------------------------------------------------
+pub Stmnt: Box<Root> = {
+    Func,
+    While,
+    Let,
+    Assign,
+    If,
+}
+
 Func: Box<Root> = {
-    "fn" <n:Var> "("<arg:FnArg>")" "->"<t:Var> <b:Body> => Box::new(Root::Func(
+    "fn" <n:Var> "("<arg:FnArg>")" "->"<t:Kind> <b:Body> => Box::new(Root::Func(
         n,
         arg,
         t,
         b,
         None
     )),
+    "fn" <n:Var> "()" "->"<t:Kind> <b:Body> => Box::new(Root::Func(
+        n,
+        vec!(),
+        t,
+        b,
+        None
+    )),
 }
 
-FnArg: Vec<(String,String)> = {
+FnArg: Vec<(String,Type)> = {
     ArgList
 }
 
-ArgType: (String,String) = {
-    <Var>":"<Var>
+ArgType: (String,Type) = {
+    <Var>":"<Kind>
 }
 
 ArgList = Comma<ArgType>;
+
+ParamList = Comma<Expr>;
 
 Comma<T>: Vec<T> = {
     <v:(<T> ",")*> <e:T?> => match e {
@@ -53,14 +70,14 @@ Assign: Box<Root> = {
 };
 
 Let: Box<Root> = {
-    "let" <m:"mut"?> <n:Var>":"<t:Var> "=" <e:Stmnt> ";" => Box::new(Root::Let(
+    "let" <m:"mut"?> <n:Var>":"<t:Kind> "=" <e:Stmnt> ";" => Box::new(Root::Let(
         if let Some(_) = m {"mut".to_string()} else {"read".to_string()},
         n,
         t,
         e,
         None
     )),
-    "let" <m:"mut"?> <n:Var>":"<t:Var> "=" <e:Expr> ";" => Box::new(Root::Let(
+    "let" <m:"mut"?> <n:Var>":"<t:Kind> "=" <e:Expr> ";" => Box::new(Root::Let(
         if let Some(_) = m {"mut".to_string()} else {"read".to_string()},
         n,
         t,
@@ -92,6 +109,10 @@ While: Box<Root> = {
     ))
 }
 
+Return: Box<Root> = {
+    <Expr>
+}
+
 Body: Box<Root> = {
     "{" <Stmnts> "}"
 }
@@ -106,19 +127,11 @@ Stmnts: Box<Root> = {
     }
 }
 
-
 //-----------------------------------------------------
 //Expression
 //-----------------------------------------------------
-pub Stmnt: Box<Root> = {
-    Func,
-    While,
-    Let,
-    Assign,
-    If,
-}
 
-Expr: Box<Root> = {
+pub Expr: Box<Root> = {
     BoolAlg,
 };
 
@@ -139,13 +152,31 @@ Factor: Box<Root> = {
 
 Term: Box<Root> = {
     PrefixOp Term => Box::new(Root::Prefix(<>)),
+    FuncCall,
     Num => Box::new(Root::Number(<>)),
     Bool => Box::new(Root::Boolean(<>)),
     Var => Box::new(Root::Variable(<>)),
     "(" <Expr> ")"
 };
 
-//translations into operands
+FuncCall: Box<Root> = {
+    <n:Var> "("<l:ParamList>")" => Box::new(Root::FuncCall(
+        n,
+        l
+    )),
+    <n:Var> "()" => Box::new(Root::FuncCall(
+        n,
+        vec!()
+    ))
+}
+
+//translations
+
+Kind: Type = {
+    "i32" => Type::I32,
+    "bool" => Type::Bool,
+    "()" => Type::Unit,
+}
 
 PrefixOp: Opcode = {
     "-" => Opcode::Negate,
