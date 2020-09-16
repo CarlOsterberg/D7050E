@@ -9,7 +9,7 @@ pub mod ast;
 
 fn main() {
     //let _true:i32 = 22;
-    println!("{:?}", ExprParser::new().parse("fn a() -> i32 {a}"));
+    println!("{:?}", ExprParser::new().parse("a(56,3)"));
     //println!("{}", ExprParser::new().parse("-6+1*88").unwrap());
 }
 

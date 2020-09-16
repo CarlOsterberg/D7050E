@@ -30,8 +30,9 @@ ArgType: (String,String) = {
     <Var>":"<Var>
 }
 
-ArgList = Comma<ArgType>;
+ParamList = Comma<Expr>;
 
+ArgList = Comma<ArgType>;
 
 If: Box<Expr> = {
     "if" <e:Expr> <ib:Body> => Box::new(Expr::If(
@@ -122,8 +123,20 @@ Elemen: Box<Expr> = {
 
 Factor: Box<Expr> = {
     Factor FactorOp Term => Box::new(Expr::Infix(<>)),
+    FuncCall,
     Term,
 };
+
+FuncCall: Box<Expr> = {
+    <n:Var> "("<l:ParamList>")" => Box::new(Expr::FuncCall(
+        n,
+        l
+    )),
+    <n:Var> "()" => Box::new(Expr::FuncCall(
+        n,
+        vec!()
+    ))
+}
 
 Term: Box<Expr> = {
     PrefixOp Term => Box::new(Expr::Prefix(<>)),

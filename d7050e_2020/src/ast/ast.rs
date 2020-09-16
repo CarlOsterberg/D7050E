@@ -19,11 +19,12 @@ pub enum Expr {
     Infix(Box<Expr>, Opcode, Box<Expr>),
     Prefix(Opcode, Box<Expr>),
     Type(String),
+    FuncCall(String, Vec<Box<Expr>>),
     Assign(String, Box<Expr>),
     Let(String,String,String,Box<Expr>),
     While(Box<Expr>, Vec<Box<Expr>>),
     If(Box<Expr>,Vec<Box<Expr>>,Option<Vec<Box<Expr>>>),
-    Func(String,Vec<(String,String)>,String,Vec<Box<Expr>>)
+    Func(String,Vec<(String,String)>,String,Vec<Box<Expr>>),
 }
 #[derive(Debug)]
 pub enum Opcode {
