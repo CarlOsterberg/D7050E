@@ -25,7 +25,7 @@ While: Box<Expr> = {
     "while" <BoolAlg>,
 }
 
-Do: Vec<Box<Expr>> = {
+Body: Vec<Box<Expr>> = {
     "{"<Stmnts>"}",
 }
 Stmnts = SemiColon<Expr>;
@@ -58,7 +58,7 @@ Comma<T>: Vec<T> = {
 
 pub Expr: Box<Expr> = {
     Read Var Type Assign => Box::new(Expr::Let(<>)),
-    While Do => Box::new(Expr::While(<>)),
+    While Body => Box::new(Expr::While(<>)),
     BoolAlg,
 };
 

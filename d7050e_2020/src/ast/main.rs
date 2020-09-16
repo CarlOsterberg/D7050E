@@ -9,7 +9,7 @@ pub mod ast;
 
 fn main() {
     //let _true:i32 = 22;
-    println!("{:?}", ExprParser::new().parse("while true {let a:i32 = 5;let b:i32 = 5; a}"));
+    println!("{:?}", ExprParser::new().parse("let a:i32 = while true {}"));
     //println!("{}", ExprParser::new().parse("-6+1*88").unwrap());
 }
 
