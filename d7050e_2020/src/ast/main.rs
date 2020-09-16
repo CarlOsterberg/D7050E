@@ -14,9 +14,6 @@ fn main() {
 }
 
 #[test]
-fn parse_expr() {
-    assert_eq!(
-        format!("{:?}", ExprParser::new().parse("2*1").unwrap()),
-        "Op(Number(1), Greater, Op(Op(Number(1), Mul, Number(1)), Add, Number(2)))"
-    );
+fn parse_stmnt() {
+    assert!(ExprParser::new().parse("fn a() -> () {a=a();}").is_ok());
 }
