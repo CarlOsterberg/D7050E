@@ -4,7 +4,6 @@ use std::fmt;
 
 // println!("{:?}", ..)
 
-
 #[derive(Debug)]
 pub enum Term {
     Num(i32),
@@ -25,6 +24,7 @@ pub enum Expr {
     While(Box<Expr>, Vec<Box<Expr>>),
     If(Box<Expr>,Vec<Box<Expr>>,Option<Vec<Box<Expr>>>),
     Func(String,Vec<(String,String)>,String,Vec<Box<Expr>>),
+    Program(Vec<Box<Expr>>),
 }
 #[derive(Debug)]
 pub enum Opcode {
