@@ -21,6 +21,13 @@ If: Box<Expr> = {
     )),
 }
 
+Assign: Box<Expr> = {
+    <n:Var> "=" <e:Expr> => Box::new(Expr::Assign(
+        n,
+        e,
+    ))
+};
+
 Read: String = {
     "let mut" => String::from_str("Mutable").unwrap(),
     "let" => String::from_str("Readable").unwrap(),
@@ -30,7 +37,7 @@ Type: String = {
     ":" <Var>,
 };
 
-Assign: Box<Expr> = {
+Let: Box<Expr> = {
     "=" <Expr> ,
 };
 
@@ -71,7 +78,8 @@ Comma<T>: Vec<T> = {
 
 pub Expr: Box<Expr> = {
     If,
-    Read Var Type Assign => Box::new(Expr::Let(<>)),
+    Assign,
+    Read Var Type Let => Box::new(Expr::Let(<>)),
     While Body => Box::new(Expr::While(<>)),
     BoolAlg,
 };

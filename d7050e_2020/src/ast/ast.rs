@@ -19,6 +19,7 @@ pub enum Expr {
     Infix(Box<Expr>, Opcode, Box<Expr>),
     Prefix(Opcode, Box<Expr>),
     Type(String),
+    Assign(String, Box<Expr>),
     Let(String,String,String,Box<Expr>),
     While(Box<Expr>, Vec<Box<Expr>>),
     If(Box<Expr>,Vec<Box<Expr>>,Option<Vec<Box<Expr>>>),
