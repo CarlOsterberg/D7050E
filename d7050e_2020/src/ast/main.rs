@@ -6,23 +6,23 @@ use parser::*;
 
 pub mod ast;
 
-fn main() {
-    println!("minimal");
-    println!("{:?}", NumOrIdParser::new().parse("123"));
-    println!("{:?}", NumOrIdParser::new().parse("a1_a"));
 
-    println!("{}", NumOrIdParser::new().parse("123").unwrap());
-    println!("{}", NumOrIdParser::new().parse("a1_a").unwrap());
+fn main() {
+    //let _true:i32 = 22;
+    println!("{:?}", ProgramParser::new().parse("a=if true {b=b;}; else {a=a;};a"));
+    //println!("{}", ExprParser::new().parse("-6+1*88").unwrap());
 }
 
 #[test]
-fn parse_num_or_id() {
-    assert_eq!(
-        format!("{}", NumOrIdParser::new().parse("123").unwrap()),
-        "123"
-    );
-    assert_eq!(
-        format!("{}", NumOrIdParser::new().parse("a1_a").unwrap()),
-        "a1_a"
-    );
+fn parse_stmnt() {
+    assert!(ProgramParser::new().parse("fn a() -> i32 {a=a();};").is_ok());
+    assert!(ProgramParser::new().parse("fn a() -> i32 {a=a+2;};").is_ok());
+    assert!(ProgramParser::new().parse("fn a(x:i32,y:bool) -> i32 {while (x<3) {x=x+1;y=false;}; if true {b=b;}; else {a=a;};a=b;};").is_ok());
+    assert!(ProgramParser::new().parse("let a:i32 = if true {b=b;};else {a=a;};").is_ok());
+    assert!(ProgramParser::new().parse("a=if true {b=b;}; else {a=a;};").is_ok());
+    assert!(ProgramParser::new().parse("if true {b=b;};else {a=a;};").is_ok());
+    assert!(ProgramParser::new().parse("let mut a:i32 = 1;").is_ok());
+    assert!(ProgramParser::new().parse("let a:bool = true;").is_ok());
+    assert!(ProgramParser::new().parse("while (x==5) {let x:i32 = 0;let x:i32 = 0;if true {b=b;};else {a=a;};};").is_ok());
+    assert!(ProgramParser::new().parse("a=5+5*3;").is_ok());
 }

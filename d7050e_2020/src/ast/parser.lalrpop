@@ -4,15 +4,188 @@ use crate::ast::*;
 
 grammar;
 
-pub NumOrId: NumOrId = {
-    Num => NumOrId::Num(<>),
-    Id => NumOrId::Id(<>),
+pub Program: Vec<Box<Expr>> = {
+    <Stmnts>
 }
- 
-pub Num: usize = {
-    r"[0-9]+" => usize::from_str(<>).unwrap(),
+
+//-----------------------------------------------------
+//Statement
+//-----------------------------------------------------
+Func: Box<Expr> = {
+    "fn" <n:Var> "("<arg:FnArg>")" "->"<t:Var> <b:Body> => Box::new(Expr::Func(
+        n,
+        arg,
+        t,
+        b,
+    )),
+    "fn" <n:Var> "()" "->"<t:Var> <b:Body> => Box::new(Expr::Func(
+        n,
+        vec!(),
+        t,
+        b,
+    )),
+}
+
+FnArg: Vec<(String,String)> = {
+    ArgList
+}
+
+ArgType: (String,String) = {
+    <Var>":"<Var>
+}
+
+ParamList = Comma<Expr>;
+
+ArgList = Comma<ArgType>;
+
+If: Box<Expr> = {
+    "if" <e:Expr> <ib:Body> => Box::new(Expr::If(
+        e,
+        ib,
+        None,
+    )),
+    "if" <e:Expr> <ib:Body> r"; ?else" <eb:Body> => Box::new(Expr::If(
+        e,
+        ib,
+        Some(eb),
+    )),
+}
+
+Assign: Box<Expr> = {
+    <n:Var> "=" <e:Expr> => Box::new(Expr::Assign(
+        n,
+        e,
+    ))
 };
 
-pub Id: String = {
-    r"([a-z]|[A-Z])([a-z]|[A-Z]|[0-9]|_)*" => String::from_str(<>).unwrap(),
+Read: String = {
+    "let mut" => String::from_str("Mutable").unwrap(),
+    "let" => String::from_str("Readable").unwrap(),
+};
+
+Type: String = {
+    ":" <Var>,
+};
+
+Let: Box<Expr> = {
+    "=" <Expr> ,
+};
+
+While: Box<Expr> = {
+    "while" <BoolAlg>,
+}
+
+Body: Vec<Box<Expr>> = {
+    "{"<Stmnts>"}",
+}
+Stmnts = SemiColon<Expr>;
+
+SemiColon<T>: Vec<T> = {
+    <v:(<T> ";")*> <e:BoolAlg?> => match e {
+        None => v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};
+
+Comma<T>: Vec<T> = {
+    <v:(<T> ",")*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};
+
+//-----------------------------------------------------
+//Expression
+//-----------------------------------------------------
+
+pub Expr: Box<Expr> = {
+    If,
+    Assign,
+    Func,
+    Read Var Type Let => Box::new(Expr::Let(<>)),
+    While Body => Box::new(Expr::While(<>)),
+    BoolAlg,
+};
+
+BoolAlg: Box<Expr> = {
+    BoolAlg BoolAlgOp Elemen => Box::new(Expr::Infix(<>)),
+    Elemen,
+};
+
+Elemen: Box<Expr> = {
+    Elemen ExprOp Factor => Box::new(Expr::Infix(<>)),
+    Factor,
+};
+
+Factor: Box<Expr> = {
+    Factor FactorOp Term => Box::new(Expr::Infix(<>)),
+    FuncCall,
+    Term,
+};
+
+FuncCall: Box<Expr> = {
+    <n:Var> "("<l:ParamList>")" => Box::new(Expr::FuncCall(
+        n,
+        l
+    )),
+    <n:Var> "()" => Box::new(Expr::FuncCall(
+        n,
+        vec!()
+    ))
+}
+
+Term: Box<Expr> = {
+    PrefixOp Term => Box::new(Expr::Prefix(<>)),
+    Num => Box::new(Expr::Number(<>)),
+    Bool => Box::new(Expr::Boolean(<>)),
+    Var => Box::new(Expr::Variable(<>)),
+    "(" <Expr> ")"
+};
+
+//translations into operands
+
+PrefixOp: Opcode = {
+    "-" => Opcode::Negate,
+    "!" => Opcode::Not,
+};
+
+BoolAlgOp: Opcode = {
+    "<" => Opcode::Less,
+    ">" => Opcode::Greater,
+    "||" => Opcode::Or,
+    "&&" => Opcode::And,
+    "==" => Opcode::Equals,
+};
+
+ExprOp: Opcode = {
+    "+" => Opcode::Add,
+    "-" => Opcode::Sub,
+};
+
+FactorOp: Opcode = {
+    "*" => Opcode::Mul,
+    "/" => Opcode::Div,
+};
+
+//base terms, i32, 
+
+Num: i32 = {
+    r"[0-9]+" => i32::from_str(<>).unwrap()
+};
+
+Bool: bool = {
+    "true" => bool::from_str(<>).unwrap(),
+    "false" => bool::from_str(<>).unwrap(),
+};
+
+Var: String = {
+    r"(_|[a-z]|[A-Z])([a-z]|[A-Z]|[0-9]|_)*" => String::from_str(<>).unwrap(),
 };
