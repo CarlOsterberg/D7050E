@@ -6,7 +6,6 @@ use parser::*;
 
 pub mod ast;
 
-
 fn main() {
     //let _true:i32 = 22;
     println!("{:?}", ProgramParser::new().parse("a=if true {b=b;}; else {a=a;};a"));
@@ -15,7 +14,7 @@ fn main() {
 
 #[test]
 fn parse_stmnt() {
-    assert!(ProgramParser::new().parse("fn a() -> i32 {a=a();};").is_ok());
+    assert!(ProgramParser::new().parse("fn a() -> () {a=a();};").is_ok());
     assert!(ProgramParser::new().parse("fn a() -> i32 {a=a+2;};").is_ok());
     assert!(ProgramParser::new().parse("fn a(x:i32,y:bool) -> i32 {while (x<3) {x=x+1;y=false;}; if true {b=b;}; else {a=a;};a=b;};").is_ok());
     assert!(ProgramParser::new().parse("let a:i32 = if true {b=b;};else {a=a;};").is_ok());
