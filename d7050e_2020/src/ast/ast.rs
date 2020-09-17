@@ -10,6 +10,14 @@ pub enum Term {
     Var(String),
     Bool(bool),
 }
+
+#[derive(Debug)]
+pub enum Type {
+    I32,
+    Bool,
+    Unit,
+}
+
 #[derive(Debug)]
 pub enum Expr {
     Number(i32),
@@ -20,10 +28,10 @@ pub enum Expr {
     Type(String),
     FuncCall(String, Vec<Box<Expr>>),
     Assign(String, Box<Expr>),
-    Let(String,String,String,Box<Expr>),
+    Let(String,String,Type,Box<Expr>),
     While(Box<Expr>, Vec<Box<Expr>>),
     If(Box<Expr>,Vec<Box<Expr>>,Option<Vec<Box<Expr>>>),
-    Func(String,Vec<(String,String)>,String,Vec<Box<Expr>>),
+    Func(String,Vec<(String,Type)>,Type,Vec<Box<Expr>>),
     Program(Vec<Box<Expr>>),
 }
 #[derive(Debug)]

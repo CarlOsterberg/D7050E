@@ -12,13 +12,13 @@ pub Program: Vec<Box<Expr>> = {
 //Statement
 //-----------------------------------------------------
 Func: Box<Expr> = {
-    "fn" <n:Var> "("<arg:FnArg>")" "->"<t:Var> <b:Body> => Box::new(Expr::Func(
+    "fn" <n:Var> "("<arg:FnArg>")" "->"<t:RetType> <b:Body> => Box::new(Expr::Func(
         n,
         arg,
         t,
         b,
     )),
-    "fn" <n:Var> "()" "->"<t:Var> <b:Body> => Box::new(Expr::Func(
+    "fn" <n:Var> "()" "->"<t:RetType> <b:Body> => Box::new(Expr::Func(
         n,
         vec!(),
         t,
@@ -26,12 +26,23 @@ Func: Box<Expr> = {
     )),
 }
 
-FnArg: Vec<(String,String)> = {
+VarType: Type = {
+    "i32" => Type::I32,
+    "bool" => Type::Bool,
+} 
+
+RetType: Type = {
+    "i32" => Type::I32,
+    "bool" => Type::Bool,
+    "()" => Type::Unit,
+}
+
+FnArg: Vec<(String,Type)> = {
     ArgList
 }
 
-ArgType: (String,String) = {
-    <Var>":"<Var>
+ArgType: (String,Type) = {
+    <Var>":"<VarType>
 }
 
 ParamList = Comma<Expr>;
@@ -63,8 +74,8 @@ Read: String = {
     "let" => String::from_str("Readable").unwrap(),
 };
 
-Type: String = {
-    ":" <Var>,
+Type: Type = {
+    ":" <VarType>,
 };
 
 Let: Box<Expr> = {
