@@ -4,12 +4,15 @@ lalrpop_mod!(pub parser, "/ast/parser.rs");
 
 use parser::*;
 
+use crate::type_checker::*;
+
 pub mod ast;
+pub mod type_checker;
 
 fn main() {
-    //let _true:i32 = 22;
-    println!("{:?}", ProgramParser::new().parse("fn a() -> () {a};"));
-    //println!("{}", ExprParser::new().parse("-6+1*88").unwrap());
+    //println!("{:?}", ProgramParser::new().parse("fn a() -> () {a};"));
+    //println!("{:?}", ExprParser::new().parse("a*5").unwrap());
+    println!("{:?}", expr_type(ExprParser::new().parse("5+5").unwrap()));
 }
 
 #[test]

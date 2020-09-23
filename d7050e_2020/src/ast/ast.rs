@@ -16,6 +16,17 @@ pub enum Type {
     I32,
     Bool,
     Unit,
+    Variable(String),
+}
+
+impl PartialEq for Type {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (&Type::I32, &Type::I32) => true,
+            (&Type::Bool, &Type::Bool) => true,
+            _=> false, 
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -49,6 +60,25 @@ pub enum Opcode {
     Not,
 }
 
+impl Opcode {
+    pub fn get_type(&self) -> Type {
+        match self {
+            Opcode::Mul 
+            | Opcode::Div
+            | Opcode::Add
+            | Opcode::Sub
+            | Opcode::Negate 
+            => Type::I32,
+            Opcode::And
+            | Opcode::Or
+            | Opcode::Equals
+            | Opcode::Not
+            | Opcode::Less
+            | Opcode::Greater
+            => Type::Bool
+        }
+    }
+}
 
 // println!("{}", ..)
 
