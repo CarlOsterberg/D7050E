@@ -1,23 +1,31 @@
 use crate::ast::*;
 
 use std::collections::HashMap;
+use std::collections::VecDeque;
 
 
-pub fn expr_type(e:Box<Expr>,mut var_env:&mut HashMap<String,Type>
+pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
     ,param_env:&HashMap<String,Type>) -> Result<Type,String> {
     match *e {
         Expr::Number(_) => Ok(Type::I32),
         Expr::Boolean(_) => Ok(Type::Bool),
         Expr::Variable(name) => {
-            if var_env.contains_key(&name) {
-                let ret = var_env.get(&name).unwrap();
-                match ret {
-                    &Type::I32 => Ok(Type::I32),
-                    &Type::Bool => Ok(Type::Bool),
-                    _=> Err("Type is not valid for variable".to_string())
+            for map in var_env {
+                if map.contains_key(&name) {
+                    let ret = map.get(&name).unwrap();
+                    if *ret == Type::I32 {
+                        return Ok(Type::I32);
+                    }
+                    else if *ret == Type::Bool {
+                        return Ok(Type::Bool);
+                    }
+                    else {
+                        return Err("Type is not valid for variable".to_string());
+                    }
+
                 }
             }
-            else if param_env.contains_key(&name) {
+            if param_env.contains_key(&name) {
                 let ret = param_env.get(&name).unwrap();
                 match ret {
                     &Type::I32 => Ok(Type::I32),
@@ -88,7 +96,7 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut HashMap<String,Type>
 
             }
         },
-        Expr::Let(_read, name, kind, eval) => {
+        /*Expr::Let(_read, name, kind, eval) => {
             let rt = expr_type(eval, &mut var_env,&param_env)?;
             if rt == kind {
                 var_env.insert(name, kind);
@@ -131,12 +139,12 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut HashMap<String,Type>
             else {
                 Err("While fuk".to_string())
             }
-        },
+        },*/
         _=> unimplemented!(),
     }
 }
 
-pub fn block_type(mut block:Vec<Box<Expr>>,mut var_env:&mut HashMap<String,Type>
+/*pub fn block_type(mut block:Vec<Box<Expr>>,mut var_env:&mut HashMap<String,Type>
 ,param_env:&HashMap<String,Type>) -> Result<Type,String> {
     let last = block.pop();
     match last {
@@ -232,4 +240,4 @@ pub fn block_type(mut block:Vec<Box<Expr>>,mut var_env:&mut HashMap<String,Type>
             }
         }
     }
-}
+}*/
