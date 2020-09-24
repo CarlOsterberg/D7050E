@@ -1,18 +1,25 @@
 use lalrpop_util::lalrpop_mod;
+use std::collections::HashMap;
+//use std::collections::VecDeque;
+
 
 lalrpop_mod!(pub parser, "/ast/parser.rs");
 
 use parser::*;
 
 use crate::type_checker::*;
-
-pub mod ast;
+use crate::ast::*;
 pub mod type_checker;
+pub mod ast;
 
 fn main() {
-    //println!("{:?}", ProgramParser::new().parse("fn a() -> () {a};"));
-    //println!("{:?}", ExprParser::new().parse("a*5").unwrap());
-    println!("{:?}", expr_type(ExprParser::new().parse("5+5").unwrap()));
+    //let mut scopes = VecDeque::new();
+    let mut var_env:HashMap<String, Type> = HashMap::new();
+    let param_env:HashMap<String, Type> = HashMap::new();
+    var_env.insert("x".to_string(), Type::I32);
+    var_env.insert("b".to_string(), Type::Bool);
+    //println!("{:?}", ExprParser::new().parse("while x<5 {}"));
+    println!("{:?}", expr_type(ExprParser::new().parse("while true {x=6;}").unwrap(),&mut var_env,&param_env));
 }
 
 #[test]

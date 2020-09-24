@@ -16,7 +16,6 @@ pub enum Type {
     I32,
     Bool,
     Unit,
-    Variable(String),
 }
 
 impl PartialEq for Type {
