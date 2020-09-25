@@ -3,6 +3,35 @@ use crate::ast::*;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
+fn check_env(name:String, map_vec:&mut VecDeque<HashMap<String,Type>>
+    ,fn_map:&HashMap<String,Type>) -> Option<Type> {
+    for map in map_vec {
+        if map.contains_key(&name) {
+            let ret = map.get(&name).unwrap();
+            if *ret == Type::I32 {
+                return Some(Type::I32);
+            }
+            else if *ret == Type::Bool {
+                return Some(Type::Bool);
+            }
+            else {
+                return None;
+            }
+
+        }
+    }
+    if fn_map.contains_key(&name) {
+        let ret = fn_map.get(&name).unwrap();
+        match ret {
+            &Type::I32 => Some(Type::I32),
+            &Type::Bool => Some(Type::Bool),
+            _=> None
+        }
+    }
+    else {
+        None
+    }
+}
 
 pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
     ,param_env:&HashMap<String,Type>) -> Result<Type,String> {
@@ -10,31 +39,10 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
         Expr::Number(_) => Ok(Type::I32),
         Expr::Boolean(_) => Ok(Type::Bool),
         Expr::Variable(name) => {
-            for map in var_env {
-                if map.contains_key(&name) {
-                    let ret = map.get(&name).unwrap();
-                    if *ret == Type::I32 {
-                        return Ok(Type::I32);
-                    }
-                    else if *ret == Type::Bool {
-                        return Ok(Type::Bool);
-                    }
-                    else {
-                        return Err("Type is not valid for variable".to_string());
-                    }
-
-                }
-            }
-            if param_env.contains_key(&name) {
-                let ret = param_env.get(&name).unwrap();
-                match ret {
-                    &Type::I32 => Ok(Type::I32),
-                    &Type::Bool => Ok(Type::Bool),
-                    _=> Err("Type is not valid for variable".to_string())
-                }
-            }
-            else {
-                Err("Variable not in enviroment".to_string())
+            let res = check_env(name, &mut var_env, &param_env);
+            match res {
+                Some(res) => Ok(res),
+                None => Err("Variable not in enviroment".to_string()),
             }
         },
         Expr::Infix(l, op, r) => {
@@ -96,10 +104,12 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
 
             }
         },
-        /*Expr::Let(_read, name, kind, eval) => {
+        Expr::Let(_read, name, kind, eval) => {
             let rt = expr_type(eval, &mut var_env,&param_env)?;
             if rt == kind {
-                var_env.insert(name, kind);
+                let mut map = var_env.pop_front().unwrap();
+                map.insert(name, kind);
+                var_env.push_front(map);
                 Ok(rt)
             }
             else {
@@ -108,28 +118,19 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
         },
         Expr::Assign(name,eval)=> {
             let eval_res = expr_type(eval, &mut var_env, &param_env)?;
-            if var_env.contains_key(&name) {
-                let ret = var_env.get(&name).unwrap();
-                if eval_res == *ret {
-                    Ok(eval_res)
-                }
-                else {
-                    Err("Assign fukkd".to_string())
-                }
+            let res = check_env(name, &mut var_env, &param_env);
+            match res {
+                Some(thing) => {
+                    if eval_res == thing {
+                        Ok(eval_res)
+                    }
+                    else {
+                        Err("Type missmatch".to_string())
+                    }
+                },
+                None => Err("The assigned variable doesnt exist in the enviroment.".to_string()),
             }
-            else if param_env.contains_key(&name) {
-                let ret = param_env.get(&name).unwrap();
-                if eval_res == *ret {
-                    Ok(eval_res)
-                }
-                else {
-                    Err("Assign fukkd".to_string())
-                }
-            }
-            else {
-                Err("Variable not in enviroment".to_string())
-            }
-        },
+        },/*
         Expr::While(expr_eval,block_eval) => {
             let lt = expr_type(expr_eval,&mut var_env,param_env)?;
             let rt = block_type(block_eval,&mut var_env,&param_env);

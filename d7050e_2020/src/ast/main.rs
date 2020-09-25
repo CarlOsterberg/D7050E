@@ -20,7 +20,7 @@ fn main() {
     var_env.insert("b".to_string(), Type::Bool);
     scopes.push_front(var_env);
     //println!("{:?}", ExprParser::new().parse("while x<5 {}"));
-    println!("{:?}", expr_type(ExprParser::new().parse("-x*67").unwrap(),&mut scopes,&param_env));
+    println!("{:?}", expr_type(ExprParser::new().parse("x=5").unwrap(),&mut scopes,&param_env));
 }
 
 #[test]
