@@ -4,31 +4,21 @@ use std::fmt;
 
 // println!("{:?}", ..)
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum Term {
     Num(i32),
     Var(String),
     Bool(bool),
 }
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum Type {
     I32,
     Bool,
     Unit,
 }
 
-impl PartialEq for Type {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (&Type::I32, &Type::I32) => true,
-            (&Type::Bool, &Type::Bool) => true,
-            _=> false, 
-        }
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum Expr {
     Number(i32),
     Variable(String),
@@ -44,7 +34,7 @@ pub enum Expr {
     Func(String,Vec<(String,Type)>,Type,Vec<Box<Expr>>),
     Program(Vec<Box<Expr>>),
 }
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum Opcode {
     Mul,
     Div,

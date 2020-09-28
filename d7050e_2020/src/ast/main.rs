@@ -15,12 +15,10 @@ pub mod ast;
 fn main() {
     let mut scopes = VecDeque::new();
     let mut var_env:HashMap<String, Type> = HashMap::new();
-    let param_env:HashMap<String, Type> = HashMap::new();
-    var_env.insert("x".to_string(), Type::I32);
-    var_env.insert("b".to_string(), Type::Bool);
+    let func_info:HashMap<String, Type> = HashMap::new();
     scopes.push_front(var_env);
-    //println!("{:?}", ExprParser::new().parse("while x<5 {}"));
-    println!("{:?}", expr_type(ExprParser::new().parse("x=5").unwrap(),&mut scopes,&param_env));
+    println!("{:?}", ProgramParser::new().parse("fn a() -> () {a=a();a};").unwrap());
+    //println!("{:?}", expr_type(ExprParser::new().parse("fn a(c:bool) -> bool {c}").unwrap(),&mut scopes,&func_info));
 }
 
 #[test]
