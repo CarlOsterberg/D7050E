@@ -12,13 +12,12 @@ use crate::ast::*;
 pub mod type_checker;
 pub mod ast;
 
-fn main() {
+fn main() {/*
     let mut scopes = VecDeque::new();
     let mut var_env:HashMap<String, Type> = HashMap::new();
-    let func_info:HashMap<String, Type> = HashMap::new();
-    scopes.push_front(var_env);
-    println!("{:?}", ProgramParser::new().parse("fn a() -> () {a=a();a};").unwrap());
-    //println!("{:?}", expr_type(ExprParser::new().parse("fn a(c:bool) -> bool {c}").unwrap(),&mut scopes,&func_info));
+    let mut func_info:HashMap<String, Vec<String>> = HashMap::new();*/
+    //println!("{:?}", ProgramParser::new().parse("fn a() -> i32 {b()};fn b() -> i32 {5};").unwrap());
+    println!("{:?}", type_checker(ProgramParser::new().parse("fn a() -> i32 {b(true)};fn b(a:bool,b:bool) -> i32 {let c:i32 = 5;c};").unwrap()));
 }
 
 #[test]

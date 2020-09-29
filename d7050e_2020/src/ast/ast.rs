@@ -18,6 +18,16 @@ pub enum Type {
     Unit,
 }
 
+impl Type {
+    pub fn to_string(&self) -> String {
+        match self {
+            Type::I32 => "I32".to_string(),
+            Type::Bool => "Bool".to_string(),
+            Type::Unit => "Unit".to_string(),
+        }
+    }
+}
+
 #[derive(Debug,PartialEq)]
 pub enum Expr {
     Number(i32),
@@ -34,6 +44,23 @@ pub enum Expr {
     Func(String,Vec<(String,Type)>,Type,Vec<Box<Expr>>),
     Program(Vec<Box<Expr>>),
 }
+
+impl Expr {
+    pub fn get(&self) -> (String,Vec<String>) {
+        match self {
+            Expr::Func(name,params,ret_type,_scope) => {
+                let mut ret_vec:Vec<String> = Vec::new();
+                for param in params {
+                    ret_vec.push(param.1.to_string());
+                }
+                ret_vec.push(ret_type.to_string());
+                (name.clone(), ret_vec)
+            },
+            _=> unimplemented!("get only implemented for Expr::Func()"),
+        }
+    }
+}
+
 #[derive(Debug,PartialEq)]
 pub enum Opcode {
     Mul,
