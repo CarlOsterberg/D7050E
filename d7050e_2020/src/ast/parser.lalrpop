@@ -27,11 +27,14 @@ Func: Box<Expr> = {
 }
 
 VarType: Type = {
+    "&"<t:VarType>=> Type::Ref(Box::new(t)),
     "i32" => Type::I32,
     "bool" => Type::Bool,
 } 
 
 RetType: Type = {
+    "&"<t:VarType>=> Type::Ref(Box::new(t)),
+    "&mut " <v:VarType> => Type::Mut(Box::new(Type::Ref(Box::new(v)))),
     "i32" => Type::I32,
     "bool" => Type::Bool,
     "()" => Type::Unit,
@@ -69,17 +72,25 @@ Assign: Box<Expr> = {
     ))
 };
 
-Read: String = {
-    "let mut" => String::from_str("Mutable").unwrap(),
-    "let" => String::from_str("Readable").unwrap(),
-};
-
 Type: Type = {
     ":" <VarType>,
 };
 
 Let: Box<Expr> = {
-    "=" <Expr> ,
+   "let" <n:Var> <t:Type> "=" <e:Expr> => Box::new(
+       Expr::Let(
+           n,
+           t,
+           e
+       )
+   ),
+   "let mut" <n:Var> <t:Type> "=" <e:Expr> => Box::new(
+    Expr::Let(
+        n,
+        Type::Mut(Box::new(t)),
+        e
+    )
+),
 };
 
 While: Box<Expr> = {
@@ -121,7 +132,7 @@ pub Expr: Box<Expr> = {
     If,
     Assign,
     Func,
-    Read Var Type Let => Box::new(Expr::Let(<>)),
+    Let,
     While Body => Box::new(Expr::While(<>)),
     BoolAlg,
 };
@@ -138,7 +149,6 @@ Elemen: Box<Expr> = {
 
 Factor: Box<Expr> = {
     Factor FactorOp Term => Box::new(Expr::Infix(<>)),
-    FuncCall,
     Term,
 };
 
@@ -155,6 +165,8 @@ FuncCall: Box<Expr> = {
 
 Term: Box<Expr> = {
     PrefixOp Term => Box::new(Expr::Prefix(<>)),
+    Unary Term => Box::new(Expr::Unary(<>)),
+    FuncCall,
     Num => Box::new(Expr::Number(<>)),
     Bool => Box::new(Expr::Boolean(<>)),
     Var => Box::new(Expr::Variable(<>)),
@@ -167,6 +179,13 @@ PrefixOp: Opcode = {
     "-" => Opcode::Negate,
     "!" => Opcode::Not,
 };
+
+Unary: Opcode = {
+    "*" => Opcode::Deref,
+    "&" => Opcode::Ref,
+    "mut " => Opcode::Mut,
+    "&mut " => Opcode::MutRef
+}
 
 BoolAlgOp: Opcode = {
     "<" => Opcode::Less,

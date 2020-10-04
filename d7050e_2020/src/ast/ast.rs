@@ -11,12 +11,15 @@ pub enum Term {
     Bool(bool),
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Clone)]
 pub enum Type {
     I32,
     Bool,
     Unit,
+    Ref(Box<Type>),
+    Mut(Box<Type>),
 }
+
 
 impl Type {
     pub fn to_string(&self) -> String {
@@ -24,6 +27,43 @@ impl Type {
             Type::I32 => "I32".to_string(),
             Type::Bool => "Bool".to_string(),
             Type::Unit => "Unit".to_string(),
+            Type::Ref(t) => {
+                let a = t.to_string();
+                let mut ret = "Ref(".to_string();
+                ret.push_str(&a);
+                ret.push_str(")");
+                ret
+            },
+            Type::Mut(t) => {
+                let a = t.to_string();
+                let mut ret = "Mut(".to_string();
+                ret.push_str(&a);
+                ret.push_str(")");
+                ret
+            },
+        }
+    }
+
+    pub fn is_mut(&self) -> bool {
+        match self {
+            Type::Mut(_) => true,
+            _ => false
+        }
+    }
+
+    pub fn pop_mut(self) -> Result<Type,String> {
+        match self {
+            Type::Mut(ret) => {
+                Ok(*ret)
+            },
+            _ => Err("Type isnt mut".to_string()),
+        }
+    }
+    pub fn traverse(&self) -> &Type {
+        match self {
+            Type::Mut(next) => next.traverse(),
+            Type::Ref(next) => next.traverse(),
+            _=> self
         }
     }
 }
@@ -35,10 +75,11 @@ pub enum Expr {
     Boolean(bool),
     Infix(Box<Expr>, Opcode, Box<Expr>),
     Prefix(Opcode, Box<Expr>),
+    Unary(Opcode, Box<Expr>),
     Type(String),
     FuncCall(String, Vec<Box<Expr>>),
     Assign(String, Box<Expr>),
-    Let(String,String,Type,Box<Expr>),
+    Let(String,Type,Box<Expr>),
     While(Box<Expr>, Vec<Box<Expr>>),
     If(Box<Expr>,Vec<Box<Expr>>,Option<Vec<Box<Expr>>>),
     Func(String,Vec<(String,Type)>,Type,Vec<Box<Expr>>),
@@ -74,6 +115,10 @@ pub enum Opcode {
     Or,
     Equals,
     Not,
+    Ref,
+    Mut,
+    MutRef,
+    Deref,
 }
 
 impl Opcode {
@@ -91,7 +136,8 @@ impl Opcode {
             | Opcode::Not
             | Opcode::Less
             | Opcode::Greater
-            => Type::Bool
+            => Type::Bool,
+            _=> unimplemented!(),
         }
     }
 }
@@ -112,6 +158,7 @@ impl fmt::Display for Opcode {
             Opcode::Or => write!(f, "||"),
             Opcode::And => write!(f, "&&"),
             Opcode::Equals => write!(f, "=="),
+            _=> unimplemented!(),
         }?;
         Ok(())
     }

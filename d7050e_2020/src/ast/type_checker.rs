@@ -7,15 +7,7 @@ fn check_env(name:String,map_vec:&mut VecDeque<HashMap<String,Type>>) -> Option<
     for map in map_vec {
         if map.contains_key(&name) {
             let ret = map.get(&name).unwrap();
-            if *ret == Type::I32 {
-                return Some(Type::I32);
-            }
-            else if *ret == Type::Bool {
-                return Some(Type::Bool);
-            }
-            else {
-                return None;
-            }
+            return Some(ret.clone());
         }
     }
     None
@@ -30,6 +22,7 @@ pub fn type_checker(prgrm:Vec<Box<Expr>>) -> Vec<Result<Type,String>> {
         let info = stmnt.get();
         func_info.insert(info.0, info.1);
     }
+    println!("{:?}",&func_info);
     let mut ret_vec = Vec::new();
     for stmnt in prgrm {
         ret_vec.push(stmnt_type(stmnt, &mut scopes, &func_info));
@@ -40,7 +33,7 @@ pub fn type_checker(prgrm:Vec<Box<Expr>>) -> Vec<Result<Type,String>> {
 pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
     ,func_info:&HashMap<String,Vec<String>>) -> Result<Type,String> {
         match *e {
-            Expr::Let(_read, name, kind, eval) => {
+            Expr::Let(name, kind, eval) => {
                 let rt = expr_type(eval, &mut var_env,func_info)?;
                 if rt == kind {
                     let mut map = var_env.pop_front().unwrap();
@@ -113,6 +106,8 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
                     var_env.push_front(map);
                 }
                 let rt = block_type(block_eval,&mut var_env,func_info)?;
+                println!("{:?}",&rt);
+                println!("{:?}",&ret);
                 if rt == ret {
                     Ok(ret)
                 }
@@ -146,7 +141,7 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
                 | Opcode::Sub  => {
                     // check if op and args are compliant
                     let opt = op.get_type();
-                    if lt == opt && rt == opt {
+                    if *lt.traverse() == opt && *rt.traverse() == opt && lt == rt {
                         Ok(opt)
                     } else {
                         Err("I32 infix".to_string())
@@ -164,7 +159,7 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
                 },
                 Opcode::Less | Opcode::Greater => {
                     let opt = op.get_type();
-                    if lt == Type::I32 && rt == Type::I32 {
+                    if *lt.traverse() == Type::I32 && lt == rt {
                         Ok(opt)
                     } else {
                         Err("Less, greater".to_string())
@@ -227,6 +222,53 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
                     }
                 }
                 None => Err("Function doesnt exist.".to_string())
+            }
+        },
+        Expr::Unary(op,r) => {
+            let rt = expr_type(r,&mut var_env,func_info)?;
+            match op {
+                Opcode::Ref => {
+                    if !rt.is_mut() {
+                        Ok(Type::Ref(Box::new(rt)))
+                    }
+                    else {
+                        let rt = rt.pop_mut()?;
+                        Ok(Type::Mut(Box::new(Type::Ref(Box::new(rt)))))
+                    }
+                },
+                Opcode::Mut => {
+                    if !rt.is_mut() {
+                        Ok(Type::Mut(Box::new(rt)))
+                    }
+                    else {
+                        Err("The expression is already mutable".to_string())
+                    }
+                },
+                Opcode::MutRef => {
+                    if !rt.is_mut() {
+                        Ok(Type::Mut(Box::new(Type::Ref(Box::new(rt)))))
+                    }
+                    else {
+                        Err("The expression is already mutable".to_string())
+                    }
+                },
+                Opcode::Deref => {
+                    match rt {
+                        Type::Mut(ret) => {
+                            match *ret {
+                                Type::Ref(t) => {
+                                    Ok(Type::Mut(t))
+                                },
+                                _ => Err("Can not dereference non Type".to_string())
+                            }
+                        },
+                        Type::Ref(ret) => Ok(*ret),
+                        _ => Err("Can not dereference non Type::Ref".to_string())
+                    }
+                },
+                _ => {
+                    Err("Operand not Unary".to_string())
+                }
             }
         },
         _=> Err("Not a stmnt or expr".to_string()),
