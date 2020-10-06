@@ -4,14 +4,14 @@ use std::fmt;
 
 // println!("{:?}", ..)
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Clone)]
 pub enum Term {
     Num(i32),
     Var(String),
     Bool(bool),
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Clone)]
 pub enum Type {
     I32,
     Bool,
@@ -28,7 +28,7 @@ impl Type {
     }
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Clone)]
 pub enum Expr {
     Number(i32),
     Variable(String),
@@ -46,14 +46,14 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn get(&self) -> (String,Vec<String>) {
+    pub fn get(&self) -> (String,Vec<Type>) {
         match self {
             Expr::Func(name,params,ret_type,_scope) => {
-                let mut ret_vec:Vec<String> = Vec::new();
+                let mut ret_vec:Vec<Type> = Vec::new();
                 for param in params {
-                    ret_vec.push(param.1.to_string());
+                    ret_vec.push(param.1.clone());
                 }
-                ret_vec.push(ret_type.to_string());
+                ret_vec.push(ret_type.clone());
                 (name.clone(), ret_vec)
             },
             _=> unimplemented!("get only implemented for Expr::Func()"),
@@ -61,7 +61,7 @@ impl Expr {
     }
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Clone)]
 pub enum Opcode {
     Mul,
     Div,
