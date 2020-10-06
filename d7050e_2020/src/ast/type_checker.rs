@@ -3,26 +3,60 @@ use crate::ast::*;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-fn check_env(name:String,map_vec:&mut VecDeque<HashMap<String,Type>>) -> Option<Type> {
-    for map in map_vec {
-        if map.contains_key(&name) {
-            let ret = map.get(&name).unwrap();
-            return Some(ret.clone());
-        }
+fn check_env(var:Type,map_vec:&mut VecDeque<HashMap<String,Type>>) -> Result<Type,String> {
+    match var {
+        Type::Var(name) => {
+            for map in map_vec {
+                if map.contains_key(&name) {
+                    let ret = map.get(&name).unwrap().clone();
+                    return Ok(ret.clone());
+                }
+            }
+            Err("Variable not initialized".to_string())
+        },
+        _=> Err("Not a var".to_string())
     }
-    None
+}
+
+fn get_var_type(var:Type,map_vec:&mut VecDeque<HashMap<String,Type>>) -> Type {
+    match var.clone() {
+        Type::Var(_) => {
+            let b = check_env(var, map_vec);
+            if b.is_ok() {
+               let c = b.unwrap();
+               if c.is_mut() {
+                   c.pop_mut()
+               }
+               else {
+                   c
+               }
+            }
+            else {
+                Type::Unit
+            }
+        }
+        Type::Mut(cont) => {
+            if cont.is_mut() {
+                get_var_type(var, map_vec)
+            }
+            else {
+                Type::Mut(Box::new(get_var_type(var, map_vec)))
+            }
+        },
+        Type::Ref(_) => {
+            Type::Ref(Box::new(get_var_type(var, map_vec)))
+        },
+        a => a
+    }
 }
 
 pub fn type_checker(prgrm:Vec<Box<Expr>>) -> Vec<Result<Type,String>> {
-    let mut scopes = VecDeque::new();
-    let mut func_info:HashMap<String, Vec<String>> = HashMap::new();
-    let map:HashMap<String,Type> = HashMap::new();
-    scopes.push_front(map);
+    let mut scopes:VecDeque<HashMap<String,Type>> = VecDeque::new();
+    let mut func_info:HashMap<String, Vec<Type>> = HashMap::new();
     for stmnt in &prgrm {
         let info = stmnt.get();
         func_info.insert(info.0, info.1);
     }
-    println!("{:?}",&func_info);
     let mut ret_vec = Vec::new();
     for stmnt in prgrm {
         ret_vec.push(stmnt_type(stmnt, &mut scopes, &func_info));
@@ -31,33 +65,75 @@ pub fn type_checker(prgrm:Vec<Box<Expr>>) -> Vec<Result<Type,String>> {
 }
 
 pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
-    ,func_info:&HashMap<String,Vec<String>>) -> Result<Type,String> {
+    ,func_info:&HashMap<String,Vec<Type>>) -> Result<Type,String> {
         match *e {
             Expr::Let(name, kind, eval) => {
-                let rt = expr_type(eval, &mut var_env,func_info)?;
-                if rt == kind {
-                    let mut map = var_env.pop_front().unwrap();
-                    map.insert(name, kind);
-                    var_env.push_front(map);
-                    Ok(rt)
+                let rt = stmnt_type(eval, &mut var_env,func_info)?;
+                if rt.is_ref_var() {
+                    let fixed = get_var_type(rt.clone(), var_env);
+                    if rt == fixed {
+                        let mut map = var_env.pop_front().unwrap();
+                        map.insert(name, rt.clone());
+                        var_env.push_front(map);
+                        Ok(rt)
+                    }
+                    else if rt == kind.clone().pop_mut() {
+                        let mut map = var_env.pop_front().unwrap();
+                        map.insert(name, kind.clone());
+                        var_env.push_front(map);
+                        Ok(kind)
+                    }
+                    else {
+                        Err("Let type and expr type doesnt match.".to_string())
+                    }
                 }
                 else {
-                    Err("Let type and expr type doesnt match.".to_string())
+                    if rt == kind {
+                        let mut map = var_env.pop_front().unwrap();
+                        map.insert(name, rt.clone());
+                        var_env.push_front(map);
+                        Ok(rt)
+                    }
+                    else if rt == kind.clone().pop_mut() {
+                        let mut map = var_env.pop_front().unwrap();
+                        map.insert(name, kind.clone());
+                        var_env.push_front(map);
+                        Ok(kind)
+                    }
+                    else {
+                        Err("Let type and expr type doesnt match.".to_string())
+                    }
                 }
             },
             Expr::Assign(name,eval)=> {
                 let eval_res = expr_type(eval, &mut var_env, func_info)?;
-                let res = check_env(name, &mut var_env);
-                match res {
-                    Some(thing) => {
-                        if eval_res == thing {
-                            Ok(eval_res)
+                let var = expr_type(name,&mut var_env, func_info);
+                match var {
+                    Ok(l) => {
+                        println!("{:?}",l.clone());
+                        if l.is_mut() {
+                            if eval_res == l.clone().pop_mut() {
+                                Ok(eval_res)
+                            }
+                            else {
+                                let mut err = "Type missmatch when assigning variable ".to_string();
+                                err.push_str("with type: ");
+                                err.push_str(&l.to_string());
+                                err.push_str(" and the Expression with type: ");
+                                err.push_str(&eval_res.to_string());
+                                Err(err)
+                            }
                         }
                         else {
-                            Err("Type missmatch".to_string())
+                            let mut err = "Cant assign to immutable variable ".to_string();
+                            err.push_str("with type: ");
+                            err.push_str(&l.to_string());
+                            Err(err)
                         }
                     },
-                    None => Err("The assigned variable doesnt exist in the enviroment.".to_string()),
+                    Err(err) => {
+                        Err(err)
+                    }
                 }
             },
             Expr::While(expr_eval,block_eval) => {
@@ -100,14 +176,15 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
                 }
             },
             Expr::Func(_name, args, ret, block_eval) => {
+                let m: HashMap<String,Type> = HashMap::new();
+                var_env.push_front(m);
                 for  var in args {
                     let mut map = var_env.pop_front().unwrap();
                     map.insert(var.0, var.1);
                     var_env.push_front(map);
                 }
                 let rt = block_type(block_eval,&mut var_env,func_info)?;
-                println!("{:?}",&rt);
-                println!("{:?}",&ret);
+                var_env.pop_front();
                 if rt == ret {
                     Ok(ret)
                 }
@@ -121,20 +198,32 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
 
 //get Type of expr, stmnts are also expr
 pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
-    ,func_info:&HashMap<String,Vec<String>>) -> Result<Type,String> {
+    ,func_info:&HashMap<String,Vec<Type>>) -> Result<Type,String> {
     match *e {
         Expr::Number(_) => Ok(Type::I32),
         Expr::Boolean(_) => Ok(Type::Bool),
         Expr::Variable(name) => {
-            let res = check_env(name, &mut var_env);
-            match res {
-                Some(res) => Ok(res),
-                None => Err("Variable not in enviroment".to_string()),
-            }
+            Ok(Type::Var(name))
         },
         Expr::Infix(l, op, r) => {
-            let lt = expr_type(l,&mut var_env,func_info)?;
-            let rt = expr_type(r,&mut var_env,func_info)?;
+            let mut lt = expr_type(l,&mut var_env,func_info)?;
+            let mut rt = expr_type(r,&mut var_env,func_info)?;
+            if lt.is_var() {
+                if check_env(lt.clone(), var_env).is_ok() {
+                    lt = check_env(lt, var_env).unwrap();
+                }
+                else {
+                    return Err("Variable not initialized".to_string());
+                }
+            }
+            if rt.is_var() {
+                if check_env(rt.clone(), var_env).is_ok() {
+                    rt = check_env(rt, var_env).unwrap();
+                }
+                else {
+                    return Err("Variable not initialized".to_string());
+                }
+            }
             match op {
                 //Operations with I32
                 Opcode::Add | Opcode::Mul | Opcode::Div 
@@ -169,7 +258,15 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
             }
         },
         Expr::Prefix(op,r) => {
-            let rt = expr_type(r,&mut var_env,func_info)?;
+            let mut rt = expr_type(r,&mut var_env,func_info)?;
+            if rt.is_var() {
+                if check_env(rt.clone(), var_env).is_ok() {
+                    rt = check_env(rt, var_env).unwrap();
+                }
+                else {
+                    return Err("Variable not initialized".to_string());
+                }
+            }
             match op {
                 Opcode::Negate => {
                     let opt = op.get_type();
@@ -199,23 +296,12 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
                     if (args.len() - 1) == params.len() {
                         for param in params {
                             let param_type = expr_type(param,&mut var_env,&func_info)?;
-                            if param_type.to_string() != args[counter] {
-                                return Err("Paramater and argument type missmatch".to_string());
+                            if param_type != args[counter] {
+                                return Err("Parameter and argument type missmatch".to_string());
                             }
                             counter = counter + 1;
                         }
-                        if args[counter] == String::from("I32") {
-                            Ok(Type::I32)
-                        }
-                        else if args[counter] == String::from("Bool") {
-                            Ok(Type::Bool)
-                        }
-                        else if args[counter] == String::from("Unit") {
-                            Ok(Type::Unit)
-                        }
-                        else {
-                            Err("Not a valid type".to_string())
-                        }
+                        Ok(args[counter].clone())
                     }
                     else {
                         Err("funccall paramns and func arg doesnt match".to_string())
@@ -225,44 +311,37 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
             }
         },
         Expr::Unary(op,r) => {
-            let rt = expr_type(r,&mut var_env,func_info)?;
+            let mut rt = expr_type(r,&mut var_env,func_info)?;
+            if rt.is_var() {
+                if check_env(rt.clone(), var_env).is_ok() {
+                    rt = check_env(rt, var_env).unwrap();
+                }
+                else {
+                    return Err("Variable not initialized".to_string());
+                }
+            }
             match op {
                 Opcode::Ref => {
-                    if !rt.is_mut() {
-                        Ok(Type::Ref(Box::new(rt)))
-                    }
-                    else {
-                        let rt = rt.pop_mut()?;
-                        Ok(Type::Mut(Box::new(Type::Ref(Box::new(rt)))))
-                    }
+                    Ok(Type::Ref(Box::new(rt)))
                 },
                 Opcode::Mut => {
-                    if !rt.is_mut() {
-                        Ok(Type::Mut(Box::new(rt)))
-                    }
-                    else {
-                        Err("The expression is already mutable".to_string())
-                    }
+                    Ok(Type::Mut(Box::new(rt)))
                 },
                 Opcode::MutRef => {
-                    if !rt.is_mut() {
-                        Ok(Type::Mut(Box::new(Type::Ref(Box::new(rt)))))
-                    }
-                    else {
-                        Err("The expression is already mutable".to_string())
-                    }
+                    Ok(Type::Mut(Box::new(Type::Ref(Box::new(rt)))))
                 },
                 Opcode::Deref => {
                     match rt {
                         Type::Mut(ret) => {
-                            match *ret {
-                                Type::Ref(t) => {
-                                    Ok(Type::Mut(t))
-                                },
-                                _ => Err("Can not dereference non Type".to_string())
-                            }
+                            Ok(ret.pop_ref())
                         },
-                        Type::Ref(ret) => Ok(*ret),
+                        Type::Ref(ret) => {
+                            let mut t = *ret;
+                            if check_env(t.clone(), var_env).is_ok() {
+                                t = check_env(t, var_env).unwrap();
+                            }
+                            Ok(t)
+                        },
                         _ => Err("Can not dereference non Type::Ref".to_string())
                     }
                 },
@@ -276,24 +355,36 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
 }
 //get Type of a scope
 pub fn block_type(mut block:Vec<Box<Expr>>,mut var_env:&mut VecDeque<HashMap<String,Type>>
-,func_info:&HashMap<String,Vec<String>>) -> Result<Type,String> {
+,func_info:&HashMap<String,Vec<Type>>) -> Result<Type,String> {
     let last = block.pop();
     let scope:HashMap<String, Type> = HashMap::new();
     var_env.push_front(scope);
     for stmnt in block {
-        stmnt_type(stmnt,&mut var_env,func_info)?;
+        let res = stmnt_type(stmnt,&mut var_env,func_info);
+        if res.is_err() {
+            return res;
+        }
     }
     match last {
         Some(expr) => {
-            let res = expr_type(expr, &mut var_env, func_info);
+            let res = expr_type(expr.clone(), &mut var_env, func_info);
             match res {
                 Ok(_) => {
                     var_env.pop_front();
                     res
                 },
-                Err(_) => {
-                    var_env.pop_front();
-                    Ok(Type::Unit)
+                Err(context) => {
+                    if context == "Not a stmnt or expr".to_string() {
+                        let stmnt_res = stmnt_type(expr, &mut var_env, func_info);
+                        var_env.pop_front();
+                        match stmnt_res {
+                            Ok(_) => Ok(Type::Unit),
+                            Err(err) => Err(err),
+                        }
+                    }
+                    else {
+                        Err(context)
+                    }
                 },
             }
         },

@@ -28,6 +28,7 @@ Func: Box<Expr> = {
 
 VarType: Type = {
     "&"<t:VarType>=> Type::Ref(Box::new(t)),
+    "&mut " <v:VarType> => Type::Mut(Box::new(Type::Ref(Box::new(v)))),
     "i32" => Type::I32,
     "bool" => Type::Bool,
 } 
@@ -67,9 +68,16 @@ If: Box<Expr> = {
 
 Assign: Box<Expr> = {
     <n:Var> "=" <e:Expr> => Box::new(Expr::Assign(
-        n,
+        Box::new(Expr::Variable(n)),
         e,
-    ))
+    )),
+    <o:UnaryOp> <n:Var> "=" <e:Expr> => Box::new(Expr::Assign(
+        Box::new(Expr::Unary(
+            o,
+            Box::new(Expr::Variable(n)),
+        )),
+        e,
+    )),
 };
 
 Type: Type = {
@@ -163,9 +171,16 @@ FuncCall: Box<Expr> = {
     ))
 }
 
+Unary: Box<Expr> = {
+    <o:UnaryOp> <e:Term> => Box::new(Expr::Unary(
+        o,
+        e,
+    )),
+}
+
 Term: Box<Expr> = {
     PrefixOp Term => Box::new(Expr::Prefix(<>)),
-    Unary Term => Box::new(Expr::Unary(<>)),
+    Unary,
     FuncCall,
     Num => Box::new(Expr::Number(<>)),
     Bool => Box::new(Expr::Boolean(<>)),
@@ -180,7 +195,7 @@ PrefixOp: Opcode = {
     "!" => Opcode::Not,
 };
 
-Unary: Opcode = {
+UnaryOp: Opcode = {
     "*" => Opcode::Deref,
     "&" => Opcode::Ref,
     "mut " => Opcode::Mut,
@@ -189,10 +204,13 @@ Unary: Opcode = {
 
 BoolAlgOp: Opcode = {
     "<" => Opcode::Less,
+    "<=" => Opcode::LessEqual,
     ">" => Opcode::Greater,
+    ">=" => Opcode::GreaterEqual,
     "||" => Opcode::Or,
     "&&" => Opcode::And,
     "==" => Opcode::Equals,
+    "!=" => Opcode::NotEquals
 };
 
 ExprOp: Opcode = {

@@ -4,7 +4,7 @@ use std::fmt;
 
 // println!("{:?}", ..)
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Clone)]
 pub enum Term {
     Num(i32),
     Var(String),
@@ -18,6 +18,7 @@ pub enum Type {
     Unit,
     Ref(Box<Type>),
     Mut(Box<Type>),
+    Var(String),
 }
 
 
@@ -41,6 +42,12 @@ impl Type {
                 ret.push_str(")");
                 ret
             },
+            Type::Var(t) => {
+                let mut ret = "Var(".to_string();
+                ret.push_str(&t);
+                ret.push_str(")");
+                ret
+            },
         }
     }
 
@@ -51,14 +58,83 @@ impl Type {
         }
     }
 
-    pub fn pop_mut(self) -> Result<Type,String> {
+    pub fn is_ref(&self) -> bool {
         match self {
-            Type::Mut(ret) => {
-                Ok(*ret)
-            },
-            _ => Err("Type isnt mut".to_string()),
+            Type::Ref(_) => true,
+            _ => false
         }
     }
+
+    pub fn is_ref_var(&self)-> bool{
+        match self {
+            Type::Ref(ret) | Type::Mut(ret) => {
+                ret.is_ref_var()
+            }
+            Type::Var(_) => true,
+            _ => false
+        }
+    }
+    
+
+    pub fn is_var(&self) -> bool {
+        match self {
+            Type::Var(_) => true,
+            _ => false
+        }
+    }
+
+    pub fn get_var(&self) -> Option<String> {
+        match self {
+            Type::Var(n) => Some(n.to_string()),
+            _ => None
+        }
+    }
+
+    pub fn pop_ref(self) -> Type {
+        match self {
+            Type::Mut(ret) => {
+                Type::Mut(Box::new(ret.pop_ref()))
+            },
+            Type::Ref(ret) => {
+                *ret
+            }
+            _ => self,
+        }
+    }
+
+    pub fn pop_mut(self) -> Type {
+        match self {
+            Type::Mut(ret) => {
+                *ret
+            },
+            _ => self,
+        }
+    }
+    pub fn pop_inner_mut(self) -> Type {
+        let t = self.inner();
+        t.0
+    }
+
+    fn inner(self) -> (Type,bool) {
+        match self {
+            Type::Mut(next) => {
+                let t = next.inner();
+                if t.1 {
+                    (t.0,false)
+                }
+                else {
+                    (Type::Mut(Box::new(t.0)),false)
+                }
+            },
+            Type::Ref(next) => {
+                let t = next.inner();
+                (Type::Ref(Box::new(t.0)),t.1)
+
+            },
+            _=> (self,true)
+        }
+    }
+
     pub fn traverse(&self) -> &Type {
         match self {
             Type::Mut(next) => next.traverse(),
@@ -68,7 +144,7 @@ impl Type {
     }
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Clone)]
 pub enum Expr {
     Number(i32),
     Variable(String),
@@ -78,7 +154,7 @@ pub enum Expr {
     Unary(Opcode, Box<Expr>),
     Type(String),
     FuncCall(String, Vec<Box<Expr>>),
-    Assign(String, Box<Expr>),
+    Assign(Box<Expr>, Box<Expr>),
     Let(String,Type,Box<Expr>),
     While(Box<Expr>, Vec<Box<Expr>>),
     If(Box<Expr>,Vec<Box<Expr>>,Option<Vec<Box<Expr>>>),
@@ -87,14 +163,14 @@ pub enum Expr {
 }
 
 impl Expr {
-    pub fn get(&self) -> (String,Vec<String>) {
+    pub fn get(&self) -> (String,Vec<Type>) {
         match self {
             Expr::Func(name,params,ret_type,_scope) => {
-                let mut ret_vec:Vec<String> = Vec::new();
+                let mut ret_vec:Vec<Type> = Vec::new();
                 for param in params {
-                    ret_vec.push(param.1.to_string());
+                    ret_vec.push(param.1.clone());
                 }
-                ret_vec.push(ret_type.to_string());
+                ret_vec.push(ret_type.clone());
                 (name.clone(), ret_vec)
             },
             _=> unimplemented!("get only implemented for Expr::Func()"),
@@ -102,7 +178,7 @@ impl Expr {
     }
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Clone)]
 pub enum Opcode {
     Mul,
     Div,
@@ -110,10 +186,13 @@ pub enum Opcode {
     Sub,
     Negate,
     Less,
+    LessEqual,
     Greater,
+    GreaterEqual,
     And,
     Or,
     Equals,
+    NotEquals,
     Not,
     Ref,
     Mut,
@@ -133,9 +212,12 @@ impl Opcode {
             Opcode::And
             | Opcode::Or
             | Opcode::Equals
+            | Opcode::NotEquals
             | Opcode::Not
             | Opcode::Less
+            | Opcode::LessEqual
             | Opcode::Greater
+            | Opcode::GreaterEqual
             => Type::Bool,
             _=> unimplemented!(),
         }
@@ -154,10 +236,13 @@ impl fmt::Display for Opcode {
             Opcode::Not => write!(f, "!"),
             Opcode::Negate => write!(f, "-"),
             Opcode::Less => write!(f, "<"),
+            Opcode::LessEqual => write!(f, "<="),
             Opcode::Greater => write!(f, ">"),
+            Opcode::GreaterEqual => write!(f, ">="),
             Opcode::Or => write!(f, "||"),
             Opcode::And => write!(f, "&&"),
             Opcode::Equals => write!(f, "=="),
+            Opcode::NotEquals => write!(f, "!="),
             _=> unimplemented!(),
         }?;
         Ok(())
