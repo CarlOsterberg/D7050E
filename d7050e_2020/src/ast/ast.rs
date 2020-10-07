@@ -16,6 +16,8 @@ pub enum Type {
     I32,
     Bool,
     Unit,
+    Ref(Box<Type>),
+    RefMut(Box<Type>)
 }
 
 impl Type {
@@ -24,6 +26,30 @@ impl Type {
             Type::I32 => "I32".to_string(),
             Type::Bool => "Bool".to_string(),
             Type::Unit => "Unit".to_string(),
+            Type::Ref(t) | Type::RefMut(t)=> {
+                let a = t.to_string();
+                let mut ret = "Ref(".to_string();
+                ret.push_str(&a);
+                ret.push_str(")");
+                ret
+            },
+            
+        }
+    }
+    pub fn is_refmut(&self) -> bool {
+        match self {
+            Type::RefMut(_) => {
+                true
+            },
+            _ => false
+        }
+    }
+    pub fn is_ref(&self) -> bool {
+        match self {
+            Type::Ref(_) => {
+                true
+            },
+            _ => false
         }
     }
 }
@@ -37,12 +63,13 @@ pub enum Expr {
     Prefix(Opcode, Box<Expr>),
     Type(String),
     FuncCall(String, Vec<Box<Expr>>),
-    Assign(String, Box<Expr>),
+    Assign(Box<Expr>, Box<Expr>),
     Let(bool,String,Type,Box<Expr>),
     While(Box<Expr>, Vec<Box<Expr>>),
     If(Box<Expr>,Vec<Box<Expr>>,Option<Vec<Box<Expr>>>),
     Func(String,Vec<(String,(Type,bool))>,Type,Vec<Box<Expr>>),
     Program(Vec<Box<Expr>>),
+    Unary(Opcode, Box<Expr>),
 }
 
 impl Expr {
@@ -57,6 +84,12 @@ impl Expr {
                 (name.clone(), ret_vec)
             },
             _=> unimplemented!("get only implemented for Expr::Func()"),
+        }
+    }
+    pub fn var_get(self) -> Result<String,String> {
+        match self {
+            Expr::Variable(c) => Ok(c),
+            _=> Err("Expr not var".to_string())
         }
     }
 }
@@ -74,6 +107,10 @@ pub enum Opcode {
     Or,
     Equals,
     Not,
+    Ref,
+    Mut,
+    Deref,
+    RefMut,
 }
 
 impl Opcode {
@@ -91,7 +128,11 @@ impl Opcode {
             | Opcode::Not
             | Opcode::Less
             | Opcode::Greater
-            => Type::Bool
+            => Type::Bool,
+            Opcode::Deref |
+            Opcode::Mut |
+            Opcode::Ref |
+            Opcode::RefMut => Type::Unit
         }
     }
 }
@@ -112,6 +153,10 @@ impl fmt::Display for Opcode {
             Opcode::Or => write!(f, "||"),
             Opcode::And => write!(f, "&&"),
             Opcode::Equals => write!(f, "=="),
+            Opcode::Deref => write!(f, "*"),
+            Opcode::Ref => write!(f, "&"),
+            Opcode::RefMut => write!(f, "&mut "),
+            Opcode::Mut => write!(f, "mut "),
         }?;
         Ok(())
     }

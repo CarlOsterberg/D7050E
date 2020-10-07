@@ -42,19 +42,23 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,boo
                     Err("Let type and expr type doesnt match.".to_string())
                 }
             },
-            Expr::Assign(name,eval)=> {
-                let eval_res = expr_type(eval, &mut var_env, func_info)?;
-                let res = check_env(name, &mut var_env);
-                match res {
-                    Some(thing) => {
-                        if (eval_res.0 == thing.0) && (thing.1) {
-                            Ok(eval_res.0)
+            Expr::Assign(l,r)=> {
+                let rt = expr_type(r, &mut var_env, func_info);
+                let lt = expr_type(l, &mut var_env, func_info);
+                if lt.is_err() {
+                    return Err("Assign failed".to_string());
+                }
+                let lt =lt.unwrap();
+                match rt {
+                    Ok(thing) => {
+                        if (lt.0 == thing.0) && (lt.1) {
+                            Ok(lt.0)
                         }
                         else {
                             Err("Type missmatch".to_string())
                         }
                     },
-                    None => Err("The assigned variable doesnt exist in the enviroment.".to_string()),
+                    Err(_) => Err("The assigned variable doesnt exist in the enviroment.".to_string()),
                 }
             },
             Expr::While(expr_eval,block_eval) => {
@@ -219,6 +223,34 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool
                     }
                 }
                 None => Err("Function doesnt exist.".to_string())
+            }
+        },
+        Expr::Unary(op,r) => {
+            let mut rt = expr_type(r,&mut var_env,func_info)?;
+            match op {
+                Opcode::Ref => {
+                    Ok((Type::Ref(Box::new(rt.0)),rt.1))
+                },
+                Opcode::RefMut => {
+                    if rt.1 {
+                        Ok((Type::RefMut(Box::new(rt.0)),true))
+                    }
+                    else {
+                        Err("Cannot create mutable ref to immbutable".to_string())
+                    }
+                },
+                Opcode::Deref => {
+                    match rt.0 {
+                        Type::Ref(c) => {
+                            Ok((*c,false))
+                        },
+                        Type::RefMut(c) => {
+                            Ok((*c,true))
+                        },
+                        _ => Err("Cant deref non ref".to_string())
+                    }
+                },
+                _ => Err("Not unary op".to_string())
             }
         },
         _=> Err("Not a stmnt or expr".to_string()),

@@ -8,12 +8,14 @@ use crate::type_checker::*;
 pub mod type_checker;
 pub mod ast;
 
-fn main() {/*
-    let mut scopes = VecDeque::new();
-    let mut var_env:HashMap<String, Type> = HashMap::new();
-    let mut func_info:HashMap<String, Vec<String>> = HashMap::new();*/
-    //println!("{:?}", ProgramParser::new().parse("let d:i32=5;d=4;"));
-    let s = "fn a(a:i32) -> () {let mut b:i32=5;a(b)};";
-    /* let s = "fn a(a:i32) -> () {let b:i32=5;a(b)};"; */
+fn main() {
+    //println!("{:?}", ProgramParser::new().parse("b=& &7;"));
+    let s = "fn a() -> & &i32 {let a:i32=5;let b:&i32=&a;let c:& &i32=&b;c};";
+    //works
+    //let s = "fn a() -> () {let mut a:i32 = 5;let b:&mut i32 = &mut a;*b=7;};";
+    //crashes
+    //let s = "fn a() -> () {let mut a:i32 = 5;let b:&i32 = &a;*b=7;};";
+    //crashes
+    //let s = "fn a() -> () {let a:i32 = 5;let b:&mut i32 = &mut a;*b=7;};";
     println!("{:?}", type_checker(ProgramParser::new().parse(s).unwrap()));
 }
