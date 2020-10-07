@@ -12,6 +12,6 @@ fn main() {/*
     let mut scopes = VecDeque::new();
     let mut var_env:HashMap<String, Type> = HashMap::new();
     let mut func_info:HashMap<String, Vec<String>> = HashMap::new();*/
-    //println!("{:?}", ExprParser::new().parse("56-1*(5+3)").unwrap());
-    println!("{:?}", type_checker(ProgramParser::new().parse("fn a() -> i32 {a()};fn b() -> i32 {5};").unwrap()));
+    //println!("{:?}", ProgramParser::new().parse("fn a() -> i32 {b(55)+a()};fn b(c:i32) -> i32 {c = 3;c};"));
+    println!("{:?}", type_checker(ProgramParser::new().parse("fn a(c:i32) -> i32 {b(c,true)+a(c)};fn b(mut c: i32,mut b:bool) -> i32 {c = 3;b =false;c};").unwrap()));
 }

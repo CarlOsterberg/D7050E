@@ -3,7 +3,7 @@ use crate::ast::*;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-fn check_env(name:String,map_vec:&mut VecDeque<HashMap<String,Type>>) -> Option<Type> {
+fn check_env(name:String,map_vec:&mut VecDeque<HashMap<String,(Type,bool)>>) -> Option<(Type,bool)> {
     for map in map_vec {
         if map.contains_key(&name) {
             let ret = map.get(&name).unwrap();
@@ -14,8 +14,8 @@ fn check_env(name:String,map_vec:&mut VecDeque<HashMap<String,Type>>) -> Option<
 }
 
 pub fn type_checker(prgrm:Vec<Box<Expr>>) -> Vec<Result<Type,String>> {
-    let mut scopes:VecDeque<HashMap<String,Type>> = VecDeque::new();
-    let mut func_info:HashMap<String, Vec<Type>> = HashMap::new();
+    let mut scopes:VecDeque<HashMap<String,(Type,bool)>> = VecDeque::new();
+    let mut func_info:HashMap<String, Vec<(Type,bool)>> = HashMap::new();
     for stmnt in &prgrm {
         let info = stmnt.get();
         func_info.insert(info.0, info.1);
@@ -27,14 +27,14 @@ pub fn type_checker(prgrm:Vec<Box<Expr>>) -> Vec<Result<Type,String>> {
     ret_vec
 }
 
-pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
-    ,func_info:&HashMap<String,Vec<Type>>) -> Result<Type,String> {
+pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool)>>
+    ,func_info:&HashMap<String,Vec<(Type,bool)>>) -> Result<Type,String> {
         match *e {
-            Expr::Let(_read, name, kind, eval) => {
+            Expr::Let(read, name, kind, eval) => {
                 let rt = expr_type(eval, &mut var_env,func_info)?;
                 if rt == kind {
                     let mut map = var_env.pop_front().unwrap();
-                    map.insert(name, kind);
+                    map.insert(name, (kind,read));
                     var_env.push_front(map);
                     Ok(rt)
                 }
@@ -47,7 +47,7 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
                 let res = check_env(name, &mut var_env);
                 match res {
                     Some(thing) => {
-                        if eval_res == thing {
+                        if eval_res == thing.0 && thing.1 {
                             Ok(eval_res)
                         }
                         else {
@@ -97,7 +97,7 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
                 }
             },
             Expr::Func(_name, args, ret, block_eval) => {
-                let m: HashMap<String,Type> = HashMap::new();
+                let m: HashMap<String,(Type,bool)> = HashMap::new();
                 var_env.push_front(m);
                 for  var in args {
                     let mut map = var_env.pop_front().unwrap();
@@ -118,15 +118,15 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
 }
 
 //get Type of expr, stmnts are also expr
-pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
-    ,func_info:&HashMap<String,Vec<Type>>) -> Result<Type,String> {
+pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool)>>
+    ,func_info:&HashMap<String,Vec<(Type,bool)>>) -> Result<Type,String> {
     match *e {
         Expr::Number(_) => Ok(Type::I32),
         Expr::Boolean(_) => Ok(Type::Bool),
         Expr::Variable(name) => {
             let res = check_env(name, &mut var_env);
             match res {
-                Some(res) => Ok(res),
+                Some(res) => Ok(res.0),
                 None => Err("Variable not in enviroment".to_string()),
             }
         },
@@ -197,12 +197,12 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
                     if (args.len() - 1) == params.len() {
                         for param in params {
                             let param_type = expr_type(param,&mut var_env,&func_info)?;
-                            if param_type != args[counter] {
+                            if param_type != args[counter].0 {
                                 return Err("Parameter and argument type missmatch".to_string());
                             }
                             counter = counter + 1;
                         }
-                        Ok(args[counter].clone())
+                        Ok(args[counter].0.clone())
                     }
                     else {
                         Err("funccall paramns and func arg doesnt match".to_string())
@@ -215,10 +215,10 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,Type>>
     }
 }
 //get Type of a scope
-pub fn block_type(mut block:Vec<Box<Expr>>,mut var_env:&mut VecDeque<HashMap<String,Type>>
-,func_info:&HashMap<String,Vec<Type>>) -> Result<Type,String> {
+pub fn block_type(mut block:Vec<Box<Expr>>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool)>>
+,func_info:&HashMap<String,Vec<(Type,bool)>>) -> Result<Type,String> {
     let last = block.pop();
-    let scope:HashMap<String, Type> = HashMap::new();
+    let scope:HashMap<String, (Type,bool)> = HashMap::new();
     var_env.push_front(scope);
     for stmnt in block {
         let i = stmnt_type(stmnt,&mut var_env,func_info);

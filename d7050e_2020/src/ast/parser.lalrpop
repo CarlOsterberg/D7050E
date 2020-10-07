@@ -37,12 +37,25 @@ RetType: Type = {
     "()" => Type::Unit,
 }
 
-FnArg: Vec<(String,Type)> = {
+FnArg: Vec<(String,(Type,bool))> = {
     ArgList
 }
 
-ArgType: (String,Type) = {
-    <Var>":"<VarType>
+m: bool = {
+    "mut " => true,
+}
+
+ArgType: (String,(Type,bool)) = {
+    <b:m><v:Var>":"<vt:VarType> => {
+        (v,
+        (vt,
+        b))
+    },
+    <v:Var>":"<vt:VarType> => {
+        (v,
+        (vt,
+        false))
+    }
 }
 
 ParamList = Comma<Expr>;
@@ -69,9 +82,9 @@ Assign: Box<Expr> = {
     ))
 };
 
-Read: String = {
-    "let mut" => String::from_str("Mutable").unwrap(),
-    "let" => String::from_str("Readable").unwrap(),
+Read: bool = {
+    "let mut" => true,
+    "let" => false,
 };
 
 Type: Type = {

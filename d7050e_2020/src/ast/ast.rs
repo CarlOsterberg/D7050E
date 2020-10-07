@@ -38,22 +38,22 @@ pub enum Expr {
     Type(String),
     FuncCall(String, Vec<Box<Expr>>),
     Assign(String, Box<Expr>),
-    Let(String,String,Type,Box<Expr>),
+    Let(bool,String,Type,Box<Expr>),
     While(Box<Expr>, Vec<Box<Expr>>),
     If(Box<Expr>,Vec<Box<Expr>>,Option<Vec<Box<Expr>>>),
-    Func(String,Vec<(String,Type)>,Type,Vec<Box<Expr>>),
+    Func(String,Vec<(String,(Type,bool))>,Type,Vec<Box<Expr>>),
     Program(Vec<Box<Expr>>),
 }
 
 impl Expr {
-    pub fn get(&self) -> (String,Vec<Type>) {
+    pub fn get(&self) -> (String,Vec<(Type,bool)>) {
         match self {
             Expr::Func(name,params,ret_type,_scope) => {
-                let mut ret_vec:Vec<Type> = Vec::new();
+                let mut ret_vec:Vec<(Type,bool)> = Vec::new();
                 for param in params {
                     ret_vec.push(param.1.clone());
                 }
-                ret_vec.push(ret_type.clone());
+                ret_vec.push((ret_type.clone(),false));
                 (name.clone(), ret_vec)
             },
             _=> unimplemented!("get only implemented for Expr::Func()"),
