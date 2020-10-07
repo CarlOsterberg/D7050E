@@ -30,13 +30,13 @@ pub fn type_checker(prgrm:Vec<Box<Expr>>) -> Vec<Result<Type,String>> {
 pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool)>>
     ,func_info:&HashMap<String,Vec<(Type,bool)>>) -> Result<Type,String> {
         match *e {
-            Expr::Let(read, name, kind, eval) => {
+            Expr::Let(m, name, kind, eval) => {
                 let rt = expr_type(eval, &mut var_env,func_info)?;
-                if rt == kind {
+                if rt.0 == kind && (rt.1 == m || !m) {
                     let mut map = var_env.pop_front().unwrap();
-                    map.insert(name, (kind,read));
+                    map.insert(name, (kind,m));
                     var_env.push_front(map);
-                    Ok(rt)
+                    Ok(rt.0)
                 }
                 else {
                     Err("Let type and expr type doesnt match.".to_string())
@@ -47,8 +47,8 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,boo
                 let res = check_env(name, &mut var_env);
                 match res {
                     Some(thing) => {
-                        if eval_res == thing.0 && thing.1 {
-                            Ok(eval_res)
+                        if (eval_res.0 == thing.0) && (thing.1) {
+                            Ok(eval_res.0)
                         }
                         else {
                             Err("Type missmatch".to_string())
@@ -60,7 +60,7 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,boo
             Expr::While(expr_eval,block_eval) => {
                 let lt = expr_type(expr_eval,&mut var_env,func_info)?;
                 let rt = block_type(block_eval,&mut var_env,func_info);
-                if lt==Type::Bool {
+                if lt.0==Type::Bool {
                     rt
                 }
                 else {
@@ -75,7 +75,7 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,boo
                     Some(else_block) => {
                         let r = block_type(else_block,&mut var_env,func_info)?;
                         if r == l {
-                            if if_bool == Type::Bool {
+                            if if_bool.0 == Type::Bool {
                                 Ok(r)
                             }
                             else {
@@ -87,7 +87,7 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,boo
                         }
                     },
                     None => {
-                        if if_bool == Type::Bool {
+                        if if_bool.0 == Type::Bool {
                             Ok(l)
                         }
                         else {
@@ -113,20 +113,30 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,boo
                     Err("Fn return type doesnt match the scope return type".to_string())
                 }
             },
-            _=> expr_type(e,&mut var_env,func_info),
+            _=> {
+                let r = expr_type(e,&mut var_env,func_info);
+                match r {
+                    Ok(rr) => {
+                        Ok(rr.0)
+                    },
+                    Err(rr) => {
+                        Err(rr)
+                    },
+                }
+            },
         }
 }
 
 //get Type of expr, stmnts are also expr
 pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool)>>
-    ,func_info:&HashMap<String,Vec<(Type,bool)>>) -> Result<Type,String> {
+    ,func_info:&HashMap<String,Vec<(Type,bool)>>) -> Result<(Type,bool),String> {
     match *e {
-        Expr::Number(_) => Ok(Type::I32),
-        Expr::Boolean(_) => Ok(Type::Bool),
+        Expr::Number(_) => Ok((Type::I32,true)),
+        Expr::Boolean(_) => Ok((Type::Bool,true)),
         Expr::Variable(name) => {
             let res = check_env(name, &mut var_env);
             match res {
-                Some(res) => Ok(res.0),
+                Some(res) => Ok((res.0,res.1)),
                 None => Err("Variable not in enviroment".to_string()),
             }
         },
@@ -139,8 +149,8 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool
                 | Opcode::Sub  => {
                     // check if op and args are compliant
                     let opt = op.get_type();
-                    if lt == opt && rt == opt {
-                        Ok(opt)
+                    if lt.0 == opt && rt.0 == opt {
+                        Ok((opt,true))
                     } else {
                         Err("I32 infix".to_string())
                     }
@@ -149,16 +159,16 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool
                 Opcode::Or | Opcode::And | Opcode::Equals => {
                     // both sides need to be of same type
                     let opt = op.get_type();
-                    if lt == rt {
-                        Ok(opt)
+                    if lt.0 == rt.0 {
+                        Ok((opt,true))
                     } else {
                         Err("Bool infix".to_string())
                     }
                 },
                 Opcode::Less | Opcode::Greater => {
                     let opt = op.get_type();
-                    if lt == Type::I32 && rt == Type::I32 {
-                        Ok(opt)
+                    if lt.0 == Type::I32 && rt.0 == Type::I32 {
+                        Ok((opt,true))
                     } else {
                         Err("Less, greater".to_string())
                     }
@@ -171,16 +181,16 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool
             match op {
                 Opcode::Negate => {
                     let opt = op.get_type();
-                    if rt == opt {
-                        Ok(opt)
+                    if rt.0 == opt {
+                        Ok((opt,true))
                     } else {
                         Err("I32 prefix".to_string())
                     }
                 },
                 Opcode::Not => {
                     let opt = op.get_type();
-                    if rt == opt {
-                        Ok(opt)
+                    if rt.0 == opt {
+                        Ok((opt,true))
                     } else {
                         Err("Bool prefix".to_string())
                     }
@@ -197,12 +207,12 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool
                     if (args.len() - 1) == params.len() {
                         for param in params {
                             let param_type = expr_type(param,&mut var_env,&func_info)?;
-                            if param_type != args[counter].0 {
+                            if param_type.0 != args[counter].0 || (param_type.1 == false && args[counter].1 == true) {
                                 return Err("Parameter and argument type missmatch".to_string());
                             }
                             counter = counter + 1;
                         }
-                        Ok(args[counter].0.clone())
+                        Ok(args[counter].clone())
                     }
                     else {
                         Err("funccall paramns and func arg doesnt match".to_string())
@@ -228,15 +238,24 @@ pub fn block_type(mut block:Vec<Box<Expr>>,mut var_env:&mut VecDeque<HashMap<Str
     }
     match last {
         Some(expr) => {
-            let res = expr_type(expr, &mut var_env, func_info);
+            let res = expr_type(expr.clone(), &mut var_env, func_info);
             match res {
-                Ok(_) => {
+                Ok(r) => {
                     var_env.pop_front();
-                    res
+                    Ok(r.0)
                 },
-                Err(_) => {
-                    var_env.pop_front();
-                    Ok(Type::Unit)
+                Err(context) => {
+                    if context == "Not a stmnt or expr".to_string() {
+                        let stmnt_res = stmnt_type(expr, &mut var_env, func_info);
+                        var_env.pop_front();
+                        match stmnt_res {
+                            Ok(_) => Ok(Type::Unit),
+                            Err(err) => Err(err),
+                        }
+                    }
+                    else {
+                        Err(context)
+                    }
                 },
             }
         },
