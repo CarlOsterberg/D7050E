@@ -226,7 +226,7 @@ pub fn expr_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,bool
             }
         },
         Expr::Unary(op,r) => {
-            let mut rt = expr_type(r,&mut var_env,func_info)?;
+            let rt = expr_type(r,&mut var_env,func_info)?;
             match op {
                 Opcode::Ref => {
                     Ok((Type::Ref(Box::new(rt.0)),rt.1))

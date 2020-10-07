@@ -9,8 +9,8 @@ pub mod type_checker;
 pub mod ast;
 
 fn main() {
-    //println!("{:?}", ProgramParser::new().parse("b=& &7;"));
-    let s = "fn a() -> & &i32 {let a:i32=5;let b:&i32=&a;let c:& &i32=&b;c};";
+    //println!("{:?}", ProgramParser::new().parse("fn a() -> &i32 {a()};"));
+    //let s = "fn a() -> & &i32 {& &b()};fn b() -> i32 {5};";
     //works
     //let s = "fn a() -> () {let mut a:i32 = 5;let b:&mut i32 = &mut a;*b=7;};";
     //crashes

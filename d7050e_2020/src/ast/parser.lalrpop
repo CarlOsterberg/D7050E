@@ -162,7 +162,6 @@ Elemen: Box<Expr> = {
 
 Factor: Box<Expr> = {
     Factor FactorOp Term => Box::new(Expr::Infix(<>)),
-    FuncCall,
     Term,
 };
 
@@ -178,8 +177,9 @@ FuncCall: Box<Expr> = {
 }
 
 Term: Box<Expr> = {
-    PrefixOp Term => Box::new(Expr::Prefix(<>)),
     Unary,
+    PrefixOp Term => Box::new(Expr::Prefix(<>)),
+    FuncCall,
     Num => Box::new(Expr::Number(<>)),
     Bool => Box::new(Expr::Boolean(<>)),
     Var => Box::new(Expr::Variable(<>)),
