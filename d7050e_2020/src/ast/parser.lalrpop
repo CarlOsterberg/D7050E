@@ -46,7 +46,7 @@ FnArg: Vec<(String,(Type,bool))> = {
 }
 
 m: bool = {
-    "&mut " => true,
+    "mut " => true,
 }
 
 ArgType: (String,(Type,bool)) = {

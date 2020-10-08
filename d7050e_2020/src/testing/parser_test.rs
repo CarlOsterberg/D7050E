@@ -3,6 +3,8 @@ pub mod ast;
 use lalrpop_util::lalrpop_mod;
 lalrpop_mod!(pub parser, "/ast/parser.rs");
 use parser::*;
+use std::fs;
+use std::path::Path;
 
 #[test]
 fn parse_expr() {
@@ -16,4 +18,11 @@ fn parse_expr() {
     assert!(ProgramParser::new().parse("let a:bool = true;").is_ok());
     assert!(ProgramParser::new().parse("while (x==5) {let x:i32 = 0;let x:i32 = 0;if true {b=b;};else {a=a;};};").is_ok());
     assert!(ProgramParser::new().parse("a=5+5*3;").is_ok());
+}
+#[test]
+fn r() {
+    let path = Path::new("/type_checker_tests/UnaryTest.rs");
+    let s = fs::read_to_string(path)
+        .expect("Something went wrong reading the file");
+        assert!(ProgramParser::new().parse(&s).is_ok());
 }
