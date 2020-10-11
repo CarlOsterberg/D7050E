@@ -21,8 +21,8 @@ fn parse_expr() {
 }
 #[test]
 fn r() {
-    let path = Path::new("/type_checker_tests/UnaryTest.rs");
-    let s = fs::read_to_string(path)
-        .expect("Something went wrong reading the file");
-        assert!(ProgramParser::new().parse(&s).is_ok());
+    //let path = Path::new("/type_checker_tests/UnaryTest.rs");
+    /* let s = fs::read_to_string(path)
+        .expect("Something went wrong reading the file"); */
+    assert!(ProgramParser::new().parse(&s).is_ok());
 }

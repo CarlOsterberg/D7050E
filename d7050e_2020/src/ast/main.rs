@@ -17,5 +17,6 @@ fn main() {
     //let s = "fn a() -> () {let mut a:i32 = 5;let b:&i32 = &a;*b=7;};";
     //crashes
     //let s = "fn a() -> () {let a:i32 = 5;let b:&mut i32 = &mut a;*b=7;};";
+    let s = "fn a() -> bool {let a:bool = if true {true};else{false};a};";
     println!("{:?}", type_checker(ProgramParser::new().parse(s).unwrap()));
 }

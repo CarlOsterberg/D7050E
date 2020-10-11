@@ -92,6 +92,12 @@ impl Expr {
             _=> Err("Expr not var".to_string())
         }
     }
+    pub fn is_if(&self) -> bool {
+        match self {
+            Expr::If(_,_,_) => true,
+            _=> false
+        }
+    }
 }
 
 #[derive(Debug,PartialEq,Clone)]

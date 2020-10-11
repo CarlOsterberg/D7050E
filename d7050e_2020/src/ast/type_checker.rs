@@ -31,7 +31,19 @@ pub fn stmnt_type(e:Box<Expr>,mut var_env:&mut VecDeque<HashMap<String,(Type,boo
     ,func_info:&HashMap<String,Vec<(Type,bool)>>) -> Result<Type,String> {
         match *e {
             Expr::Let(m, name, kind, eval) => {
-                let rt = expr_type(eval, &mut var_env,func_info)?;
+                let rt:(Type,bool);
+                if eval.is_if() {
+                    let res = stmnt_type(eval, var_env, func_info);
+                    if res.is_ok() {
+                        rt = (res.unwrap(),true);
+                    }
+                    else {
+                        return res;
+                    }
+                }
+                else {
+                    rt = expr_type(eval, &mut var_env,func_info)?;
+                }
                 if rt.0 == kind && (rt.1 == m || !m) {
                     let mut map = var_env.pop_front().unwrap();
                     map.insert(name, (kind,m));
@@ -270,25 +282,42 @@ pub fn block_type(mut block:Vec<Box<Expr>>,mut var_env:&mut VecDeque<HashMap<Str
     }
     match last {
         Some(expr) => {
-            let res = expr_type(expr.clone(), &mut var_env, func_info);
-            match res {
-                Ok(r) => {
-                    var_env.pop_front();
-                    Ok(r.0)
-                },
-                Err(context) => {
-                    if context == "Not a stmnt or expr".to_string() {
-                        let stmnt_res = stmnt_type(expr, &mut var_env, func_info);
-                        var_env.pop_front();
-                        match stmnt_res {
-                            Ok(_) => Ok(Type::Unit),
-                            Err(err) => Err(err),
-                        }
-                    }
-                    else {
-                        Err(context)
+            match *expr.clone() {
+                Expr::If(_,_,_) => {
+                    let res = stmnt_type(expr, &mut var_env, func_info);
+                    match res {
+                        Ok(r) => {
+                            var_env.pop_front();
+                            Ok(r)
+                        },
+                        Err(context) => {
+                            var_env.pop_front();
+                            Err(context)
+                        },
                     }
                 },
+                _ => {
+                    let res = expr_type(expr.clone(), &mut var_env, func_info);
+                    match res {
+                        Ok(r) => {
+                            var_env.pop_front();
+                            Ok(r.0)
+                        },
+                        Err(context) => {
+                            if context == "Not a stmnt or expr".to_string() {
+                                let stmnt_res = stmnt_type(expr, &mut var_env, func_info);
+                                var_env.pop_front();
+                                match stmnt_res {
+                                    Ok(_) => Ok(Type::Unit),
+                                    Err(err) => Err(err),
+                                }
+                            }
+                            else {
+                                Err(context)
+                            }
+                        },
+                    }
+                }
             }
         },
         None => {
