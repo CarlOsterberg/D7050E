@@ -9,6 +9,46 @@ pub enum Term {
     Num(i32),
     Var(String),
     Bool(bool),
+    Ref(Box<Term>),
+    RefMut(Box<Term>),
+}
+
+impl Term {
+    pub fn get_num(self) -> Option<i32> {
+        match self {
+            Term::Num(i) => {
+                Some(i)
+            },
+            _ => None
+        }
+    }
+    pub fn get_bool(self) -> Option<bool> {
+        match self {
+            Term::Bool(b) => {
+                Some(b)
+            },
+            _ => None
+        }
+    }
+    pub fn is_ref(&self) -> bool {
+        match self {
+            Term::Ref(_) => true,
+            _ => false
+        }
+    }
+    pub fn is_refmut(&self) -> bool {
+        match self {
+            Term::RefMut(_) => true,
+            _ => false
+        }
+    }
+    pub fn pop(self) -> Result<Term,String> {
+        match self {
+            Term::RefMut(t) => Ok(*t),
+            Term::Ref(t) => Ok(*t),
+            _ => Err("Cannot deref non Ref(Term)".to_string())
+        }
+    }
 }
 
 #[derive(Debug,PartialEq,Clone)]

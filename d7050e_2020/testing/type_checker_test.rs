@@ -1,7 +1,6 @@
-#[path ="../ast/ast.rs"]
 pub mod ast;
 use lalrpop_util::lalrpop_mod;
-lalrpop_mod!(pub parser, "/ast/parser.rs");
+lalrpop_mod!(pub parser, "/src/parser.rs");
 use parser::*;
 use std::env;
 use std::fs;
