@@ -78,17 +78,13 @@ impl Type {
     }
     pub fn is_refmut(&self) -> bool {
         match self {
-            Type::RefMut(_) => {
-                true
-            },
+            Type::RefMut(_) => true,
             _ => false
         }
     }
     pub fn is_ref(&self) -> bool {
         match self {
-            Type::Ref(_) => {
-                true
-            },
+            Type::Ref(_) => true,
             _ => false
         }
     }

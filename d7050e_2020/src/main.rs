@@ -20,7 +20,7 @@ fn main() {
     //crashes
     //let s = "fn a() -> () {let a:i32 = 5;let b:&mut i32 = &mut a;*b=7;};";
     //let s = "fn a() -> bool {let a:bool = if true {true};else{false};a};";
-    let s = "*&mut 5";
+    let s = "5+5*(10-1)";
     let p = ExprParser::new().parse(s.clone());
     println!("{:?}",expr_eval(p.unwrap()));
 

@@ -89,3 +89,7 @@ pub fn expr_eval(expr:Box<Expr>) -> Result<Term,String> {
         _ => unimplemented!("Implement FuncCall")
     }
 }
+
+fn block_eval() -> () {
+    unimplemented!();
+}
