@@ -20,9 +20,13 @@ fn main() {
     //crashes
     //let s = "fn a() -> () {let a:i32 = 5;let b:&mut i32 = &mut a;*b=7;};";
     //let s = "fn a() -> bool {let a:bool = if true {true};else{false};a};";
-    let s = "let mut a:i32 = 5";
+    let s = "&mut a";
     let p = ExprParser::new().parse(s.clone());
     interpreter(p.unwrap());
+    /* let mut a = &5;
+    let b = &a;
+    a = &6;
+    println!("{:?}",*b); */
 
     /* let type_res = type_checker(p.unwrap());
     let mut check = true;
