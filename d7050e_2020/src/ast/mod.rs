@@ -11,6 +11,7 @@ pub enum Term {
     Bool(bool),
     Ref(Box<Term>),
     RefMut(Box<Term>),
+    Unit,
 }
 
 impl Term {
@@ -30,6 +31,17 @@ impl Term {
             _ => None
         }
     }
+    pub fn get_var(self) -> Option<String> {
+        match self {
+            Term::Var(v) => {
+                Some(v)
+            },
+            Term::Ref(v) | Term::RefMut(v) => {
+                v.get_var()
+            }
+            _ => None
+        }
+    }
     pub fn is_ref(&self) -> bool {
         match self {
             Term::Ref(_) => true,
@@ -42,11 +54,34 @@ impl Term {
             _ => false
         }
     }
+    pub fn is_var(&self) -> bool {
+        match self {
+            Term::Var(_) => true,
+            _ => false
+        }
+    }
+    pub fn is_var_recur(&self) -> bool {
+        match self {
+            Term::Var(_) => true,
+            Term::Ref(v) | Term::RefMut(v) => {
+                v.is_var_recur()
+            }
+            _ => false
+        }
+    }
     pub fn pop(self) -> Result<Term,String> {
         match self {
             Term::RefMut(t) => Ok(*t),
             Term::Ref(t) => Ok(*t),
             _ => Err("Cannot deref non Ref(Term)".to_string())
+        }
+    }
+    pub fn change_var_name(self,new:String) -> Term {
+        match self {
+            Term::RefMut(t) => Term::RefMut(Box::new(t.change_var_name(new))),
+            Term::Ref(t) => Term::Ref(Box::new(t.change_var_name(new))),
+            Term::Var(_) => Term::Var(new), 
+            _ => self
         }
     }
 }

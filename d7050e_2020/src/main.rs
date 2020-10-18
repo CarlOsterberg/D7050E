@@ -20,24 +20,25 @@ fn main() {
     //crashes
     //let s = "fn a() -> () {let a:i32 = 5;let b:&mut i32 = &mut a;*b=7;};";
     //let s = "fn a() -> bool {let a:bool = if true {true};else{false};a};";
-    let s = "&mut a";
-    let p = ExprParser::new().parse(s.clone());
-    interpreter(p.unwrap());
-    /* let mut a = &5;
+    
+    /* let mut a = 5;
     let b = &a;
-    a = &6;
-    println!("{:?}",*b); */
+    let a = false;
+    println!("{:?}",b); */
 
-    /* let type_res = type_checker(p.unwrap());
+    let s = "fn main() -> i32 {let mut a:i32 = 5;let b:&mut i32 = &mut a;a(b);a}; fn a(c:&mut i32) -> () {if true {*c=1;};};";
+    let p = ProgramParser::new().parse(s.clone());
+
+    let type_res = type_checker(p.clone().unwrap());
     let mut check = true;
     for t in type_res {
         if t.is_err() {
             check = false;
-            println!("type checker returned err");
+            println!("type checking failed");
         }
     }
     if check {
-        
-    } */
+        interpreter(p.clone().unwrap());
+    }
     
 }
