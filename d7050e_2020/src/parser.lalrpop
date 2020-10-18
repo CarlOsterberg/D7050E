@@ -27,22 +27,39 @@ Func: Box<Expr> = {
 }
 
 VarType: Type = {
+    "&" <t:VarType> => Type::Ref(Box::new(t)),
+    "&mut " <v:VarType> => Type::RefMut(Box::new(v)),
     "i32" => Type::I32,
     "bool" => Type::Bool,
 } 
 
 RetType: Type = {
+    "&"<t:VarType>=> Type::Ref(Box::new(t)),
+    "&mut " <v:VarType> => Type::RefMut(Box::new(v)),
     "i32" => Type::I32,
     "bool" => Type::Bool,
     "()" => Type::Unit,
 }
 
-FnArg: Vec<(String,Type)> = {
+FnArg: Vec<(String,(Type,bool))> = {
     ArgList
 }
 
-ArgType: (String,Type) = {
-    <Var>":"<VarType>
+m: bool = {
+    "mut " => true,
+}
+
+ArgType: (String,(Type,bool)) = {
+    <b:m><v:Var>":"<vt:VarType> => {
+        (v,
+        (vt,
+        b))
+    },
+    <v:Var>":"<vt:VarType> => {
+        (v,
+        (vt,
+        false))
+    }
 }
 
 ParamList = Comma<Expr>;
@@ -64,14 +81,21 @@ If: Box<Expr> = {
 
 Assign: Box<Expr> = {
     <n:Var> "=" <e:Expr> => Box::new(Expr::Assign(
-        n,
+        Box::new(Expr::Variable(n)),
         e,
-    ))
+    )),
+    <o:UnaryOp> <n:Var> "=" <e:Expr> => Box::new(Expr::Assign(
+        Box::new(Expr::Unary(
+            o,
+            Box::new(Expr::Variable(n)),
+        )),
+        e,
+    )),
 };
 
-Read: String = {
-    "let mut" => String::from_str("Mutable").unwrap(),
-    "let" => String::from_str("Readable").unwrap(),
+Read: bool = {
+    "let mut" => true,
+    "let" => false,
 };
 
 Type: Type = {
@@ -138,7 +162,6 @@ Elemen: Box<Expr> = {
 
 Factor: Box<Expr> = {
     Factor FactorOp Term => Box::new(Expr::Infix(<>)),
-    FuncCall,
     Term,
 };
 
@@ -154,7 +177,9 @@ FuncCall: Box<Expr> = {
 }
 
 Term: Box<Expr> = {
+    Unary,
     PrefixOp Term => Box::new(Expr::Prefix(<>)),
+    FuncCall,
     Num => Box::new(Expr::Number(<>)),
     Bool => Box::new(Expr::Boolean(<>)),
     Var => Box::new(Expr::Variable(<>)),
@@ -167,6 +192,19 @@ PrefixOp: Opcode = {
     "-" => Opcode::Negate,
     "!" => Opcode::Not,
 };
+
+UnaryOp: Opcode = {
+    "&mut " => Opcode::RefMut,
+    "&" => Opcode::Ref,
+    "*" => Opcode::Deref,
+};
+
+Unary: Box<Expr> = {
+    <o:UnaryOp> <t:Term> => Box::new(Expr::Unary(
+        o,
+        t
+    )),
+}
 
 BoolAlgOp: Opcode = {
     "<" => Opcode::Less,
