@@ -169,6 +169,12 @@ impl Expr {
             _=> false
         }
     }
+    pub fn is_var(&self) -> bool {
+        match self {
+            Expr::Variable(_) => true,
+            _=> false
+        }
+    }
 }
 
 #[derive(Debug,PartialEq,Clone)]

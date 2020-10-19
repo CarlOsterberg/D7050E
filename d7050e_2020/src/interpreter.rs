@@ -374,6 +374,12 @@ pub fn stmnt_eval(expr:Box<Expr>,
             if r_eval.is_err() {
                 return r_eval;
             }
+            if r_eval.clone().unwrap().0.is_var() {
+                if is_refmuted(r_eval.clone().unwrap().0.get_var().unwrap(), var_env, scope_access) 
+                || is_refed(r_eval.clone().unwrap().0.get_var().unwrap(), var_env, scope_access) {
+                    return Err(format!("Variable {} is already reffed or mutreffed",r_eval.unwrap().0.get_var().unwrap()));
+                }
+            }
             let r_eval = get_var_val(r_eval.unwrap().0, var_env, scope_access);
             match r_eval {
                 Some((r_eval,_r_b)) => {
@@ -386,10 +392,28 @@ pub fn stmnt_eval(expr:Box<Expr>,
             }
         },
         Expr::Assign(l,r) => {
+            let mut check_left = false;
+            if l.clone().is_var() {
+                check_left = true;
+            }
             let r_eval = stmnt_eval(r, var_env, funcs, scope_access);
             let l_eval = stmnt_eval(l, var_env, funcs, scope_access);
             if r_eval.is_err() || l_eval.is_err() {
                 return Err(format!("Assign failed, left: {:?} right: {:?}",l_eval,r_eval));
+            }
+            if r_eval.clone().unwrap().0.is_var() {
+                if is_refmuted(r_eval.clone().unwrap().0.get_var().unwrap(), var_env, scope_access) 
+                || is_refed(r_eval.clone().unwrap().0.get_var().unwrap(), var_env, scope_access) {
+                    return Err(format!("Variable {} is already reffed or mutreffed",r_eval.unwrap().0.get_var().unwrap()));
+                }
+            }
+            if check_left {
+                if l_eval.clone().unwrap().0.is_var() {
+                    if is_refmuted(l_eval.clone().unwrap().0.get_var().unwrap(), var_env, scope_access) 
+                    || is_refed(l_eval.clone().unwrap().0.get_var().unwrap(), var_env, scope_access) {
+                        return Err(format!("Variable {} is already reffed or mutreffed",l_eval.unwrap().0.get_var().unwrap()));
+                    }
+                }
             }
             let r_eval = get_var_val(r_eval.unwrap().0, var_env, scope_access);
             let l_eval = l_eval.unwrap();
