@@ -3,7 +3,12 @@ use crate::ast::*;
 use std::collections::HashMap;
 use std::collections::VecDeque;
 
-pub fn interpreter(program:Vec<Box<Expr>>) {
+/**
+ * Takes Parser output as param and gets each function and puts them in a hashmap for use later by function calls.
+ * Sets up for main() to be started by creating a scope for it and sets its scope access.
+ * 
+*/
+pub fn interpreter(program:Vec<Box<Expr>>) -> Result<(Term,bool),String> {
     let mut var_env:VecDeque<HashMap<String,(Term,bool)>> = VecDeque::new();
     let mut funcs:HashMap<String, Box<Expr>> = HashMap::new();
     let scope = HashMap::new();
@@ -20,7 +25,7 @@ pub fn interpreter(program:Vec<Box<Expr>>) {
             }
         };
         if key.is_err() {
-            return;
+            return Err("Not a func".to_string());
         }
         let key = key.unwrap();
         if key == "main".to_string() {
@@ -28,9 +33,11 @@ pub fn interpreter(program:Vec<Box<Expr>>) {
         }
         funcs.insert(key, func);
     }
-    println!("{:?}",exe_func(main.unwrap(), &mut var_env, &funcs,&mut scope_access));
+    exe_func(main.unwrap(), &mut var_env, &funcs,&mut scope_access)
 }
-
+/**
+ * Used by FuncCalls to see if there is a refed variable
+*/
 fn is_refed(var:String, var_env: &mut VecDeque<HashMap<String,(Term,bool)>>,
 scope_access:&mut usize) -> bool {
 
@@ -45,7 +52,9 @@ scope_access:&mut usize) -> bool {
     }
     false
 }
-
+/**
+ * Used by FuncCalls to see if there is a refed mut variable
+*/
 fn is_refmuted(var:String, var_env: &mut VecDeque<HashMap<String,(Term,bool)>>,
 scope_access:&mut usize) -> bool {
 
@@ -60,7 +69,10 @@ scope_access:&mut usize) -> bool {
     }
     false
 }
-
+/**
+ * Checks the current allowed scope for the given variable
+ * Returns a Option with Variable name and Mutability of found variable
+*/
 fn check_var(var:String, var_env: &mut VecDeque<HashMap<String,(Term,bool)>>,
 scope_access:&mut usize) -> Option<(Term,bool)> {
     let mut try_name = var.clone();
@@ -93,6 +105,9 @@ scope_access:&mut usize) -> Option<(Term,bool)> {
     None
 }
 
+/**
+ * Used by assign to change a given variable in a given scope
+*/
 fn insert_assign(key:String,value:(Term,bool),var_env: &mut VecDeque<HashMap<String,(Term,bool)>>,
 scope_access:&mut usize) -> Result<String,String> {
 
@@ -130,6 +145,9 @@ scope_access:&mut usize) -> Result<String,String> {
     Err("Variable not in scope".to_string())
 }
 
+/**
+ * Fetches the value stored in a given variable, or if not a variable just echoes the given term back
+*/
 fn get_var_val(var:Term, var_env: &mut VecDeque<HashMap<String,(Term,bool)>>,
 scope_access:&mut usize) -> Option<(Term,bool)> {
     match var {
@@ -150,7 +168,9 @@ scope_access:&mut usize) -> Option<(Term,bool)> {
         _ => Some((var,true))
     }
 }
-
+/**
+ * Gets the name of the params for a given function func:String
+*/
 fn get_func_arg_names(func:String,funcs: &HashMap<String,Box<Expr>>) -> Option<Vec<String>> {
     
     let mut func_params = Vec::new();
@@ -169,7 +189,9 @@ fn get_func_arg_names(func:String,funcs: &HashMap<String,Box<Expr>>) -> Option<V
     }
     None
 }
-
+/**
+ * Gets the function expression matching a function name.
+*/
 fn get_func_expr(func:String,funcs: &HashMap<String,Box<Expr>>) -> Option<Box<Expr>> {
     for f in funcs {
         if *f.0.clone() == func {
@@ -179,6 +201,9 @@ fn get_func_expr(func:String,funcs: &HashMap<String,Box<Expr>>) -> Option<Box<Ex
     None
 }
 
+/**
+ * Used to interpret a function
+*/
 fn exe_func(func:Box<Expr>,
     var_env: &mut VecDeque<HashMap<String,(Term,bool)>>,
     funcs: &HashMap<String,Box<Expr>>,
@@ -193,6 +218,9 @@ fn exe_func(func:Box<Expr>,
     }
 }
 
+/**
+ * Interprets a given expresssion
+*/
 pub fn expr_eval(expr:Box<Expr>,
     var_env: &mut VecDeque<HashMap<String,(Term,bool)>>,
     funcs: &HashMap<String,Box<Expr>>,
@@ -362,7 +390,9 @@ pub fn expr_eval(expr:Box<Expr>,
         _ => Err("Not an expr".to_string())
     }
 }
-
+/**
+ * Interprets a given statement
+*/
 pub fn stmnt_eval(expr:Box<Expr>,
     var_env: &mut VecDeque<HashMap<String,(Term,bool)>>,
     funcs: &HashMap<String,Box<Expr>>,
@@ -478,6 +508,7 @@ pub fn stmnt_eval(expr:Box<Expr>,
                         var_env.push_front(scope);
                         let _evaled = block_eval(while_block.clone(), var_env, funcs, scope_access);
                         while_eval = expr_eval(while_expr.clone(), var_env, funcs, scope_access).unwrap();
+                        while_eval = get_var_val(while_eval.0, var_env, scope_access).unwrap();
                         current_iter = current_iter + 1;
                     }
                     Ok((Term::Unit,true))
@@ -491,7 +522,10 @@ pub fn stmnt_eval(expr:Box<Expr>,
         _ => expr_eval(expr, var_env, funcs, scope_access)
     }
 }
-
+/**
+ * Interprets a block, stmnts and exprs in a {}, and returns the type that the block evaluates to.
+ * If last row is a expression, the evaluated exression is returned, otherwise the block returns Unit, ().
+*/
 fn block_eval(expr_block:Vec<Box<Expr>>,
     var_env: &mut VecDeque<HashMap<String,(Term,bool)>>,
     funcs: &HashMap<String,Box<Expr>>,

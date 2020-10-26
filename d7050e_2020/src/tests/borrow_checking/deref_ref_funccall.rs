@@ -4,6 +4,6 @@ fn main() -> i32 {
     a(b)
 
 }; 
-fn a(c:i32) -> i32 {
+fn a(c:&i32) -> i32 {
     *c
 };

@@ -156,7 +156,7 @@ BoolAlg: Box<Expr> = {
 };
 
 Elemen: Box<Expr> = {
-    Elemen ExprOp Factor => Box::new(Expr::Infix(<>)),
+    Elemen BinOp Factor => Box::new(Expr::Infix(<>)),
     Factor,
 };
 
@@ -214,7 +214,7 @@ BoolAlgOp: Opcode = {
     "==" => Opcode::Equals,
 };
 
-ExprOp: Opcode = {
+BinOp: Opcode = {
     "+" => Opcode::Add,
     "-" => Opcode::Sub,
 };
