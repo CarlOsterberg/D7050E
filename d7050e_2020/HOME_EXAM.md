@@ -4,11 +4,9 @@
 
 ## Your repo
 
-- Link to your repo here: https://github.com/CarlOsterberg/D7050E
+https://github.com/CarlOsterberg/D7050E
 
 ## Your syntax
-
-- Give an as complete as possible EBNF grammar for your language.
 
 Program
 ```ebnf
@@ -200,7 +198,6 @@ An expression can either be a
 - n, number
 - b, boolean
 - f, function
-- Give a (simplified) Structural Operational Semantics (SOS) for your language. You don't need to detail rules that are similar (follow the same pattern). Regarding variable environment (store) you may omit details as long as the presentation is easy to follow.
 
 Sequence
 
@@ -214,7 +211,8 @@ A sequence is chain of commands where the first one is executed then the seconds
 
 Operations
 
-$$\frac{<e1, σ>⇓n1 <e2, σ>⇓n2}{e1⊗e2,σ⇓n}$$ 
+Infix:$$\frac{<e1, σ>⇓n1 <e2, σ>⇓n2}{e1⊗e2,σ⇓n}$$ 
+Prefix: $$\frac{ <e1, σ>⇓n1}{⊗e1,σ⇓n}$$ 
 
 The ⊗- sign represents one of the implemented arithmetic operations
 
@@ -229,8 +227,8 @@ The ⊗- sign represents one of the implemented arithmetic operations
 (1+2) * 3 / 2;
 1 < 2;
 5 == 5;
+-1;
 ```
-
 Operations for booleans are implemented in similar fashion and supports
 - "!", not equal
 - "&&", and
@@ -239,7 +237,15 @@ Operations for booleans are implemented in similar fashion and supports
 ```rust
 1 > 2 && true;
 false || true;
+!true;
 ```
+For prefix the operations 
+
+- "&"
+- "&mut"
+- "*" 
+
+are also defined where a & or &mut makes a reference to a variable that the dereference operation * then accesses.
 
 If true/false else
 
@@ -306,35 +312,114 @@ fn a() -> i32 {
 ```
 If the last command in a function evaluates to an expression, that is moved to the state of the function.
 
-- Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
-
-In Rust everything has a type, even statements, and following that implicit returns become easy to introduce. In the vein of following Rust implementation implict returns are implemented. While the requirements stated explicit returns, implicit ones do the same thing, but with less freedom. 
+In Rust everything has a type, even statements, and following that implicit returns become easy to introduce. In the vein of following Rust implementation implict returns are implemented. While the requirements stated explicit returns, implicit ones do the same thing, but with less freedom.  Other then that the implementation follows the requirements.
 
 ## Your type checker
 
-  
+Three types are implemented
 
-- Give a simplified set of Type Checking Rules for your language (those rules look very much like the SOS rules, but over types not values). Also here you don't need to detail rules that are similar (follow the same pattern).
+- i32
+- bool
+- unit
+- Reference
+- Mutable Reference
 
-  
+Operations
+Prefix $$\frac{<e1, σ>⇓i32 <e2, σ>⇓i32}{e1⊗e2,σ⇓i32}$$ 
+Infix $$\frac{<e1, σ>⇓i32}{⊗e1,σ⇓i32}$$ 
 
-- Demonstrate each "type rule" by an example. You may use one or several "programs" to showcase where rules successfully apply.
+```rust
+1+1;
+1 + true; //Error
+```
 
-  
+The sign ⊗ represents all the supported operations which are given in the section above. For bool type the operations look the same. The unit type is reserved for function return types.
 
-- For your implementation, give a set of programs demonstrating that ill-typed programs are rejected, connect back to the Type Checking Rules to argue why these are illegal and thus should be rejected.
+If true/false else
 
-  
+$$\frac{<bool,σ>⇓ bool \;<c1,σ>⇓σ'}{<if\;bool\;then\;c1\;else\;c2, σ>⇓σ'}$$
 
-- Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
+```rust
+if 5 {//Error not bool
+	let a:i32 = 5;
+};
+if true {
+	3
+}; else {
+	false
+}; //Error both blocks must return the same
+if true {
+	1
+}; else {
+	5
+}; //Works
+```
 
-  
+ While true/false
+
+$$\frac{<bool,σ>⇓ bool \;<c1,σ>⇓σ' <while\;bool\;do\;c, σ'>⇓σ''}{<while\;bool\;do\;c,σ>⇓σ'' }$$
+
+```rust
+while 5 {//Error not bool type
+	let a:i32 = 5;
+};
+while true {};//works
+```
+In the type-checker there is no big difference to a while loop or if/else. It check both the condition and the block as it doesnt care about the actual value only the type that is evaluated into. To note is that if the if/else statement doesnt return anything its type becomes unit, otherwise it get the type of the return, so it acts like a function without parameters. The is always handled as typ unit.
+
+Let assignment
+
+$$\frac{<x, σ>⇓i32<let\;x:=i32, σ>⇓σ'}{<let \; x := i32, σ> ⇓ σ[x := i32]}$$
+
+```rust
+let a:i32 = false;//error
+let b:bool = 5;//error
+let mut c:i32 = 3;//works
+let t:&mut i32 = &mut c;//works
+```
+
+All types are implmented in a similar way to above. To note is that the type-checker doesnt implement any borrow checking as it doesnt keep track of what variable it was assigned to, only that variable type.
+
+Assignment
+
+$$\frac{}{<x := i32, σ> ⇓ σ[x := i32]}$$
+
+```rust
+let a:i32 = 1;//works
+a = 5;//Error not mutable
+let mut b:i32 = 5;
+b = true;//Error type missmatch
+b = 6;//works
+let c:&i32 = &a;//works
+let d:i32 = *c;//works
+let e:&mut i32 = &mut b;
+*e = 3;//works
+```
+
+The last example shows how references can be used with assignments, when left hand side is dereferenced it gets the variable b instead and assigns the left hand side to it.
+
+
+Return
+
+$$\frac{<f, σ>⇓σ}{< i32, σ> ⇓ σ[i32]}$$
+
+```rust
+fn a() -> () {};//works
+fn b() -> i32 {5};//works
+fn c() -> bool {false};//works
+fn d() -> () {true};//type error
+fn e() -> &i32 {let a:i32 = 5;&a};//works in type-checking not interpreter
+```
+
+The implicit return must match the declared return type of the function.
+
+ To implement the underlying functionality for borrow checking assignments have to support dereference on the left side. This made me have to redo the parser to support operations on the left side.
 
 ## Your borrrow checker
 
 The borrow checker should check that multiple references can be set and only a single mutable reference. A variable cannot be referenced and mutably referenced at the same time. A referenced variable can only be changed via its mutable reference.
 
-The solution implements rusts borrow checking, references can be made and removed. Variables can be accessed and changed via a mutable reference. Variables passed as argument map back to the original variable. Except for a case where the stack scopes arent handled correctly. To short lifetimes references are also rejected, eq a function would try to return a referenced variable that were the owner of that variable goes out of scope at the end of the function.
+The interpreter implements rusts borrow checking, references can be made and removed. Variables can be accessed and changed via a mutable reference. Variables passed as argument map back to the original variable. Except for a case where the scopes stack isnt handled correctly. To short lifetimes references are also rejected, eq a function that would try to return a referenced variable were the owner of that variable goes out of scope at the end of the function is an error.
 
 ## Your LLVM/Crane-Lift backend (optional)
 
@@ -350,22 +435,25 @@ Comment on the alignment of the concrete course goals (taken from the course des
 
 - Lexical analysis, syntax analysis, and translation into abstract syntax.
 
-  
+I have learned a great deal about lexical analasys thanks to lalrpop. It made it digestible and easy to get of the ground. The only big issue i ran into was with how statements and expressions where to be handled. As i tried to treat them as the same i ran in to alot of ambiguity problems. When it comes to the AST that was built finding the correct structure to support everything took alot of iterations. Also realizing how things should be structured required that i understood how they should be used, which led to some backtracking when type-checking was started.
 
 - Regular expressions and grammars, context-free languages and grammars, lexer and parser generators. [lalr-pop is a classical parser generator, it auto generated the lexer for you based on regular expressions but allows for you to define the lexer yourself for more control]
 
-  
-
+I know know what a lexer and context free grammar is and how it is used to implement powerful parsers around.
+ 
 - Identifier handling and symbol table organization. Type-checking, logical inference systems. [SOS is a logical inference system]
-
   
+ The type-checker gave me some insight into my own generated AST which made me able to rework it.
+How SOS explains the compiler and catches these properties, the SOS given above is probably rather poor actual representation as i would need a some more iterations with more understanding of my own semantics before i encapsulate it correctly.
 
 - Intermediate representations and transformations for different languages. [If you attended, Recall lectures relating LLVM/Crane-lift, discussions on SSA (Single Static Assignment) used in LLVM/Crane-lift, and discussions/examples on high [level optimization](https://gitlab.henriktjader.com/pln/d7050e_2020/-/tree/generics_and_traits/examples)]
 
-  
+An intermediate representation for code is made inbetween the parser and the actual machine code, often a VM of some sort that tries to execute the code. In other words some form of interpreter. During implementation this is where i handled both Rusts borrow-checking and the ownership model.
 
 - Code optimization and register allocation. Machine code generation for common architectures. [Both LLVM/Crane-Lift does the "dirty work" of backend optimization/register allocation leveraging the SSA form of the LLVM-IR]
 
-  
+For code optimization i know have some knowledge regarding to how the compiler does it via the SSA. Also that depending on optimization levels the generated machine code program may differ from the written program. A method to verify correctness was made by CompCert, where they give proof of correctness aswell as optimised code.
 
-Comment on additional things that you have experienced and learned throughout the course.
+- Comment on additional things that you have experienced and learned throughout the course.
+
+This course is great for a more indepth look into Rust, I have a very good understanding of how Rust is implemented and why it was implemented that way (linear types, avoiding data races...). 
