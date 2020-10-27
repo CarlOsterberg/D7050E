@@ -4,15 +4,9 @@
 
 ## Your repo
 
-  
-
 - Link to your repo here: https://github.com/CarlOsterberg/D7050E
 
-  
-
 ## Your syntax
-
-  
 
 - Give an as complete as possible EBNF grammar for your language.
 
@@ -133,7 +127,7 @@ Bool
 ```
 Var
 ```ebnf
-: { _|Letter },{ Letter|Digit }*, White_space
+: { _|Letter },{ Letter|Digit }, White_space
 ;
 ```
 FuncCall
@@ -163,11 +157,11 @@ Showcase
 
 ```rust
 fn  i32_return(a:&mut  i32, mut  b:i32) ->  i32 {
-	while  b<10 && b>-5 {
+	while  b<10 {
 		b  =  b  +  1;
 	};
 	*a  =  3;
-	b
+	-b
 };
 fn  bool_return(a:&bool, b:bool) ->  bool {
 	if  !(*a  &&  b  ||  false) ==  true {
@@ -184,30 +178,35 @@ fn  main() -> () {
 	let mut t:i32 = if d{3}; else {5};
 };
 ```
+The EBNF above describe a small subset of Rust with Function declarations with explicit return type being either Unit () or one of the primitive types.
+The primitive types are i32 and boolean.
+Supported statements are let, assigments, if/else, while, implicit returns all with explicit types.
+Expression operands have a few different categories, infix operations which are split into arithmetic and boolean algebraic operations. In retrospect less than and greater than has been wrongly grouped as boolean algebraic operations, but for development it made sense beacause they all evaluate into a boolean. Supported prefix operations are negation, subtraction, reference, mutable reference and dereference. Parenthesized expression have precedence, prefix operations have precedence over infix operations and arithmetic operations before boolean operations. FactorOp has precedence over BinOp.
+Error recovery is not implemented.
 
-- Give an example that showcases all rules of your EBNF. The program should "do" something as used in the next exercise.
-
-  
-
-- For your implementation, show that your compiler successfully accepts the input program.
-
-  
-
-- Give a set of examples that are syntactically illegal, and rejected by your compiler.
-
-  
-
-- Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
-
-  
 
 ## Your semantics
 
-  
+  Symbols:
 
+- σ, state
+- σ', derived state
+- ⇓, evaluates
+- c, command
+- x, variable
+- e, expression
+
+An expression can either be a
+- n, number
+- b, boolean
+- f, function
 - Give a (simplified) Structural Operational Semantics (SOS) for your language. You don't need to detail rules that are similar (follow the same pattern). Regarding variable environment (store) you may omit details as long as the presentation is easy to follow.
 
-  
+Command
+
+```math
+\frac{<c1,σ> ⇓ σ' <c2,σ'> ⇓ σ''}{<c1;c2,σ> ⇓ σ''}
+```  
 
 - Explain (in text) what an interpretation of your example should produce, do that by dry running your given example step by step. Relate back to the SOS rules. You may skip repetitions to avoid cluttering.
 
@@ -242,35 +241,13 @@ fn  main() -> () {
 
 ## Your borrrow checker
 
-  
+The borrow checker should check that multiple references can be set and only a single mutable reference. A variable cannot be referenced and mutably referenced at the same time. A referenced variable can only be changed via its mutable reference.
 
-- Give a specification for well versus ill formed borrows. (What are the rules the borrow checker should check).
-
-  
-
-- Demonstrate the cases of ill formed borrows that your borrow checker is able to detect and reject.
-
-  
-
-- Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
-
-  
+The solution implements rusts borrow checking, references can be made and removed. Variables can be accessed and changed via a mutable reference. Variables passed as argument map back to the original variable. Except for a case where the stack scopes arent handled correctly. To short lifetimes references are also rejected, eq a function would try to return a referenced variable that were the owner of that variable goes out of scope at the end of the function.
 
 ## Your LLVM/Crane-Lift backend (optional)
 
-  
-
-- Let your backend produce LLVM-IR/Crane Lift IR for an example program (covering the translations implemented).
-
-  
-
-- Describe the translation process, and connect back to the generated IR.
-
-  
-
-- Compare your solution to the requirements (as stated in the README.md). What are your contributions to the implementation.
-
-  
+Not implemented.
 
 ## Overall course goals and learning outcomes.
 
