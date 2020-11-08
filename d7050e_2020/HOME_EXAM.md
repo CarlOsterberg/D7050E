@@ -50,7 +50,7 @@ Expr
 Precedence
 
 ```ebnf
-(* Operations are executed from left to right, highest precedence at the top *)
+(* Associativity is left to right, highest precedence at the top *)
 "(" Expr ")"
 FuncCall
 (Prefix, Unary, Deref)
@@ -194,16 +194,13 @@ An expression can either be a
 
 Sequence
 
-$
-\frac{<c0,σ> ⇓ σ' <c1,σ'> ⇓ σ''}{<c0;c1,σ> ⇓ σ''}
-$
-![\Large \frac{<c0,σ> ⇓ σ' <c1,σ'> ⇓ σ''}{<c0;c1,σ> ⇓ σ''}](https://latex.codecogs.com/svg.latex?x%3D%5Cfrac%7B-b%5Cpm%5Csqrt%7Bb%5E2-4ac%7D%7D%7B2a%7D)
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<c0,\sigma> \Downarrow \sigma' <c1,\sigma'> \Downarrow \sigma''}{<c0%3Bc1,\sigma> \Downarrow \sigma''}">
 
 ```rust
 let a:i32 = 5;
 a();
 ```
-A sequence is chain of commands where the first one is executed then the seconds command and so forth. If this wasnt the case the commands wouldnt infuence the next ones correctly, the state σ' would be gone.
+A sequence is chain of commands where the first one is executed then the seconds command and so forth. If this wasnt the case the commands wouldnt infuence the next ones correctly, the state σ' would be lost.
 
 Operations
 
