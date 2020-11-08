@@ -16,9 +16,8 @@ fn main() {
     let mut dir = env::current_dir().unwrap();
     dir.push("src");
     dir.push("tests");
-    dir.push("bugs");
-    dir.push("interpreter");
-    dir.push("reference_aliasing.rs");
+    dir.push("basic");
+    dir.push("funcCall.rs");
     let s =fs::read_to_string(dir).unwrap();
     let parsed = ProgramParser::new().parse(&s);
     println!("Parser result: {:?}", &parsed);

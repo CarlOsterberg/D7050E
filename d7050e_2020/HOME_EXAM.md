@@ -17,30 +17,49 @@ Program
 FunctionDec
 
 ```ebnf
-: "fn" Var "(" [ "," ], Params ")" "->" Return_type "{" Statement+ "};"
+: "fn" Var "(" [ "," ], Params* ")" "->" Type "{" Statement* "};"
 ;
 ```
 Params
 ```ebnf
-: Var ":" Type
-| "mut" Var ":" Type
-| Var ":" Unary Type
-| "mut" Var ":" Unary Type
+: [ "mut" ] Var ":" [Unary] Type
 ;
 ```
 Statement
 
 ```ebnf
-: "let" Var ":" Type "=" Statement ";"
-| Deref Var "=" Statement ";"
-| Var "=" Statement ";"
-| "if" Expr "{" Statement "};"
-| "if" Expr "{" Statement "}; else "{" Statement "};"
-| "while" Expr "{" Statement "};"
+: [ "let" ] Var ":" Type "=" Statement ";"
+| [Deref] Var "=" Statement ";"
+| "if" Expr "{" Statement* "};" ["else" "{" Statement* "};"]
+| "while" Expr "{" Statement* "};"
 | Expr
 ;
 ```
-Bin
+
+Expr
+
+```ebnf
+: Term,(Elemen|Factor|BoolAlg),Term
+| (Prefix|Unary|Deref),Term
+| Term
+| "(" Expr ")"
+(* Precende of operations is specified below *)
+;
+```
+
+Precedence
+
+```ebnf
+(* Operations are executed from left to right, highest precedence at the top *)
+"(" Expr ")"
+FuncCall
+(Prefix, Unary, Deref)
+Factor
+Elemen
+BoolAlg
+```
+
+Elemen
 
 ```ebnf
 : "+"
@@ -94,27 +113,17 @@ Type
 ```ebnf
 : "i32"
 | "bool"
-;
-```
-
-Return_type
-
-```ebnf
-: "i32"
-| "bool"
 | "()"
 ;
 ```
+
 Term
 
 ```ebnf
-: Unary
-| Prefix
-| FuncCall
-| Num
-| Bool
-| Var
-| "(" Expr ")"
+: [0-9]+
+|Var
+|Bool
+|FuncCall
 ;
 ```
 Bool
@@ -125,32 +134,16 @@ Bool
 ```
 Var
 ```ebnf
-: { _|Letter },{ Letter|Digit }, White_space
+: ( _|[a-z]|[A-Z] ),([a-z]|[A-Z]|[0-9]|_)*
 ;
 ```
 FuncCall
 
 ```ebnf
 : Var "(" [ "," ], Expr ")"
-;
+; (* Multiple Exprs are executed from left to right *)
 ```
 
-Letter
-
-```ebnf
-: ([a-z]|[A-Z])+
-;
-```
-Num
-```ebnf
-: [0-9]+
-;
-```
-White_space
-```ebnf
-: [ ] -> skip
-;
-```
 Showcase
 
 ```rust
@@ -201,7 +194,10 @@ An expression can either be a
 
 Sequence
 
-$$\frac{<c0,σ> ⇓ σ' <c1,σ'> ⇓ σ''}{<c0;c1,σ> ⇓ σ''}$$
+$
+\frac{<c0,σ> ⇓ σ' <c1,σ'> ⇓ σ''}{<c0;c1,σ> ⇓ σ''}
+$
+![\Large \frac{<c0,σ> ⇓ σ' <c1,σ'> ⇓ σ''}{<c0;c1,σ> ⇓ σ''}](https://latex.codecogs.com/svg.latex?x%3D%5Cfrac%7B-b%5Cpm%5Csqrt%7Bb%5E2-4ac%7D%7D%7B2a%7D)
 
 ```rust
 let a:i32 = 5;
