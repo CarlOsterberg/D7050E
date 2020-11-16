@@ -186,6 +186,7 @@ Error recovery is not implemented.
 - c, command
 - x, variable
 - e, expression
+- p, parameters
 
 An expression can either be a
 - n, number
@@ -204,10 +205,15 @@ A sequence is chain of commands where the first one is executed then the seconds
 
 Operations
 
-Infix:$$\frac{<e1, σ>⇓n1 <e2, σ>⇓n2}{e1⊗e2,σ⇓n}$$ 
-Prefix: $$\frac{ <e1, σ>⇓n1}{⊗e1,σ⇓n}$$ 
+Infix:
 
-The ⊗- sign represents one of the implemented arithmetic operations
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow n1 <e2, \sigma>\Downarrow n2}{e1 %40 e2,\sigma\Downarrow n} ">
+
+Prefix: 
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow n1}{%40 e1,\sigma\Downarrow n} ">
+
+The @ sign represents one of the implemented arithmetic operations
 
 - +, plus
 - -, minus
@@ -217,7 +223,7 @@ The ⊗- sign represents one of the implemented arithmetic operations
 - "<", less than
 - "==", equals
 ```rust
-(1+2) * 3 / 2;
+(1 + 2) * 3 / 2;
 1 < 2;
 5 == 5;
 -1;
@@ -240,9 +246,22 @@ For prefix the operations
 
 are also defined where a & or &mut makes a reference to a variable that the dereference operation * then accesses.
 
-If true/false else
+If/Else true
 
-$$\frac{<b,σ>⇓ b \;<c1,σ>⇓σ'}{<if\;b\;then\;c1\;else\;c2, σ>⇓σ'}$$
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow true <c1,\sigma>\Downarrow\sigma'}{<if\%3Btrue\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow\sigma'} ">
+
+If/Else false 
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow false <c2,\sigma>\Downarrow\sigma'}{<if\%3Bfalse\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow\sigma'} ">
+
+If true
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow true <c1,\sigma>\Downarrow\sigma'}{<if\%3Btrue\%3Bthen\%3B c1, \sigma>\Downarrow\sigma'} ">
+
+If false
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow false <c1,\sigma>\Downarrow\sigma}{<if\%3Bfalse\%3Bthen\%3B c1, \sigma>\Downarrow\sigma} ">
+
 
 ```rust
 if true {
@@ -254,20 +273,24 @@ if false {
 	a();
 };
 ```
- While true/false
+ While true
 
-$$\frac{<b,σ>⇓ b \;<c1,σ>⇓σ' <while\;b\;do\;c, σ'>⇓σ''}{<while\;b\;do\;c,σ>⇓σ'' }$$
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma >\Downarrow true \%3B<c1,\sigma>\Downarrow\sigma' <while\%3B e \%3B do\%3B c, \sigma'>\Downarrow\sigma''}{<while\%3B true \%3B do \%3B c,\sigma>\Downarrow\sigma'' } ">
+
+While false
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma >\Downarrow false \%3B<c1,\sigma>\Downarrow\sigma' <while\%3B e\%3B do\%3B c, \sigma'>\Downarrow\sigma}{<while\%3B false \%3B do \%3B c,\sigma>\Downarrow\sigma } ">
 
 ```rust
 while a<5 {
 	a = a + 1;
 };
 ```
-Both if/else and while commands their blocks are evaluted based on the condition given.
+Both if/else and while commands have their blocks evaluted or skipped based on the condition given.
 
 Let assignment
 
-$$\frac{<x, σ>⇓i32<let \text{ } x:=e, σ>⇓σ'}{<let \text{ } x := e, σ> ⇓ σ[x := e]}$$
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow n <let \text{ } x%3A=e, \sigma>\Downarrow\sigma'}{<let \text{ } x %3A= e, \sigma> \Downarrow \sigma[x %3A= n]} ">
 
 ```rust
 let a:i32 = 5 * 3;
@@ -283,7 +306,8 @@ let e:&bool = &d;
 ```
 Assignment
 
-$$\frac{}{<x := e, σ> ⇓ σ[x := e]}$$
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow n}{<x%3A= n, \sigma> \Downarrow \sigma[x%3A= n]} ">
+
 ```rust
 a = 5;
 b = !false;
@@ -292,6 +316,25 @@ d = &a;
 e = &mut b;
 ```
 The evaluated expression on the right side is moved to the already declared variable on the left. The left hand variable has to be declared mutable for assignments to be possible.
+
+Parameter
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e_1,\sigma> \Downarrow n_1, \sigma' <e_2,\sigma'> \Downarrow n_2, \sigma'' ... <e_n,\sigma^{n %2D 1}> \Downarrow n_n, \sigma^{n}}{<e_1,e_2,...,e_n, \sigma>\Downarrow n_1, n_2,...,n_n,\sigma^n}">
+
+```rust
+5,7,true,&mut 5,a()
+1+3+4+5,h,!false
+```
+Parameters are evaluated from left to right, this is important beacause some expressions may change the state.
+
+Function call
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<p, f, \sigma>\Downarrow n}{<f(p),\sigma>\Downarrow n} ">
+
+```rust
+a(5,1,true,!false);
+b(c(),h*3,&g, &mut j);
+```
 
 Return
 
