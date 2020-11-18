@@ -186,7 +186,7 @@ Error recovery is not implemented.
 - c, command
 - x, variable
 - e, expression
-- p, parameters
+- p, parameters (detailed below)
 
 An expression can either be a
 - n, number
@@ -279,7 +279,7 @@ if false {
 
 While false
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma >\Downarrow false \%3B<c1,\sigma>\Downarrow\sigma' <while\%3B e\%3B do\%3B c, \sigma'>\Downarrow\sigma}{<while\%3B false \%3B do \%3B c,\sigma>\Downarrow\sigma } ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma >\Downarrow false \%3B<c1,\sigma>\Downarrow\sigma' <while\%3B e\%3B do\%3B c, \sigma'>\Downarrow\sigma''}{<while\%3B false \%3B do \%3B c,\sigma>\Downarrow\sigma' } ">
 
 ```rust
 while a<5 {
@@ -306,7 +306,7 @@ let e:&bool = &d;
 ```
 Assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow n}{<x%3A= n, \sigma> \Downarrow \sigma[x%3A= n]} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow n <x%3A=e,\sigma>\Downarrow\sigma'}{<x%3A= n, \sigma> \Downarrow \sigma[x%3A= n]} ">
 
 ```rust
 a = 5;
@@ -319,26 +319,28 @@ The evaluated expression on the right side is moved to the already declared vari
 
 Parameter
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e_1,\sigma> \Downarrow n_1, \sigma' <e_2,\sigma'> \Downarrow n_2, \sigma'' ... <e_n,\sigma^{n %2D 1}> \Downarrow n_n, \sigma^{n}}{<e_1,e_2,...,e_n, \sigma>\Downarrow n_1, n_2,...,n_n,\sigma^n}">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e_0,\sigma> \Downarrow n_0, \sigma' <e_1,\sigma'> \Downarrow n_1, \sigma'' ... <e_n,\sigma^n> \Downarrow n_n, \sigma^{n}}{<e_0,e_0,...,e_n, \sigma>\Downarrow n_0, n_0,...,n_n,\sigma^n}">
 
 ```rust
 5,7,true,&mut 5,a()
 1+3+4+5,h,!false
 ```
 Parameters are evaluated from left to right, this is important beacause some expressions may change the state.
+A parameter may be of any type, except unit type, which is reserved for when a function shouldnt return anything.
 
 Function call
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<p, f, \sigma>\Downarrow n}{<f(p),\sigma>\Downarrow n} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{< f(p), \sigma>\Downarrow n<f(p),\sigma>\Downarrow\sigma'}{<f(p),\sigma>\Downarrow n} ">
 
 ```rust
 a(5,1,true,!false);
 b(c(),h*3,&g, &mut j);
 ```
+A function call looks the same for each other type it can evaluate into. The function f takes the parametres p and evatuates into a value of some type. A function call can alter the state of the program.
 
 Return
 
-$$\frac{<f, σ>⇓σ}{< e, σ> ⇓ σ[e]}$$
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<c_0, \sigma>\Downarrow \sigma' <c_1, \sigma'> \Downarrow \sigma'' ... <c_n, \sigma^n>\Downarrow n}{<c_0%3Bc_1%3B...%3Bc_n,\sigma>\Downarrow n,\sigma^n} ">
 
 ```rust
 fn a() -> i32 {
