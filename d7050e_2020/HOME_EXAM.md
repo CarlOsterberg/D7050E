@@ -290,7 +290,7 @@ Both if/else and while commands have their blocks evaluted or skipped based on t
 
 Let assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow n <let \text{ } x%3A=e, \sigma>\Downarrow\sigma'}{<let \text{ } x %3A= e, \sigma> \Downarrow \sigma[x %3A= n]} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow n <let \text{ } x%3A=n, \sigma>\Downarrow\sigma'}{<let \text{ } x %3A= e, \sigma> \Downarrow \sigma[x %3A= n]} ">
 
 ```rust
 let a:i32 = 5 * 3;
@@ -306,7 +306,7 @@ let e:&bool = &d;
 ```
 Assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow n <x%3A=e,\sigma>\Downarrow\sigma'}{<x%3A= n, \sigma> \Downarrow \sigma[x%3A= n]} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow n <x%3A=n,\sigma>\Downarrow\sigma'}{<x%3A= n, \sigma> \Downarrow \sigma[x%3A= n]} ">
 
 ```rust
 a = 5;
@@ -354,7 +354,7 @@ In Rust everything has a type, even statements, and following that implicit retu
 
 ## Your type checker
 
-Three types are implemented
+The types implemented are
 
 - i32
 - bool
@@ -363,19 +363,25 @@ Three types are implemented
 - Mutable Reference
 
 Operations
-Prefix $$\frac{<e1, σ>⇓i32 <e2, σ>⇓i32}{e1⊗e2,σ⇓i32}$$ 
-Infix $$\frac{<e1, σ>⇓i32}{⊗e1,σ⇓i32}$$ 
+Infix:
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32 <e2, \sigma>\Downarrow i32}{e1 %40 e2,\sigma\Downarrow i32} ">
+
+Prefix: 
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32}{%40 e1,\sigma\Downarrow i32} ">
 
 ```rust
 1+1;
 1 + true; //Error
 ```
 
-The sign ⊗ represents all the supported operations which are given in the section above. For bool type the operations look the same. The unit type is reserved for function return types.
+The sign @ represents all the supported operations which are given in the section above. For bool type the operations look the same. The unit type is reserved for function return types.
 
-If true/false else
 
-$$\frac{<bool,σ>⇓ bool \;<c1,σ>⇓σ'}{<if\;bool\;then\;c1\;else\;c2, σ>⇓σ'}$$
+If/Else
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool <c1,\sigma>\Downarrow i32<c2,\sigma>\Downarrow i32}{<if\%3Bbool\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow i32} ">
 
 ```rust
 if 5 {//Error not bool
@@ -392,10 +398,22 @@ if true {
 	5
 }; //Works
 ```
+To note is that aslong as both of c1 and c2 evaluate into the same type everything will work fine.
 
- While true/false
+ if
 
-$$\frac{<bool,σ>⇓ bool \;<c1,σ>⇓σ' <while\;bool\;do\;c, σ'>⇓σ''}{<while\;bool\;do\;c,σ>⇓σ'' }$$
+ <img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool <c,\sigma>\Downarrow i32}{<if\%3Bbool\%3Bthen\%3B c \%3B, \sigma>\Downarrow i32} ">
+
+ ```rust
+if 5 {//Error not bool type
+	let a:i32 = 5;
+};
+if true {};//works
+```
+
+while 
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool <c,\sigma>\Downarrow unit}{<while\%3Bbool\%3Bthen\%3B c \%3B, \sigma>\Downarrow unit} ">
 
 ```rust
 while 5 {//Error not bool type
@@ -403,11 +421,11 @@ while 5 {//Error not bool type
 };
 while true {};//works
 ```
-In the type-checker there is no big difference to a while loop or if/else. It check both the condition and the block as it doesnt care about the actual value only the type that is evaluated into. To note is that if the if/else statement doesnt return anything its type becomes unit, otherwise it get the type of the return, so it acts like a function without parameters. The is always handled as typ unit.
+In the type-checker there is no big difference to a while loop or if/else. It checks both the condition and the block as it doesnt care about the actual value only the type that is evaluated into. To note is that if the if/else statement doesnt return anything its type becomes unit, otherwise it gets the type of the return, so it acts like a function without parameters. While is always handled as type unit.
 
 Let assignment
 
-$$\frac{<x, σ>⇓i32<let\;x:=i32, σ>⇓σ'}{<let \; x := i32, σ> ⇓ σ[x := i32]}$$
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow i32 <let \text{ } x%3A=i32, \sigma>\Downarrow\sigma'}{<let \text{ } x %3A= e, \sigma> \Downarrow \sigma[x %3A= n]} ">
 
 ```rust
 let a:i32 = false;//error
@@ -455,9 +473,50 @@ The implicit return must match the declared return type of the function.
 
 ## Your borrrow checker
 
-The borrow checker should check that multiple references can be set and only a single mutable reference. A variable cannot be referenced and mutably referenced at the same time. A referenced variable can only be changed via its mutable reference.
+The borrow-checker checks operations surronding references. Refrences should not allow for data races, therefor if a variable is referenced, the referenced varaible shouldnt be able to be changed. 
+```rust
+let mut a:i32 = 5;
+let b:&i32 = &a;
+a = 3; //Error
+```
+Mutable references can only be created to mutable variables. For references either is possible.
+```rust
+let a:i32 = 5;
+let b:&mut i32 = &mut a; //Error
+```
+Multiple references are allowed to the same variable. 
+```rust
+let a:i32 = 5;
+let b:&i32 = &a;
+let c:&i32 = &a; //Works
+```
+Multiple mutable references arent allowed to the same variable. 
+```rust
+let mut a:i32 = 5;
+let b:&mut i32 = &a;
+let c:&mut i32 = &a; //Error
+```
+Mutable references and references to the same variable cannot exist at the same time.
+```rust
+let mut a:i32 = 5;
+let b:&i32 = &a;
+let c:&mut i32 = &mut a; //Error
+------------
+let mut d:i32 = 11;
+let e:&mut i32 = &mut d;
+let f:&i32 = &d; //Error
+```
+Also beacuse of ownership in rust, whenever a variables owner goes out of scope, the variable goes out of scope. This has implications for references beacuse they dont own the variable they reference. Therefor references shouldnt have longer lifetimes then the variable they reference.
+```rust
+fn a() -> i32 {
+	*b(5);
+}
+fn b(c:i32) -> &i32 {
+	&c //Error
+}
+```
 
-The interpreter implements rusts borrow checking, references can be made and removed. Variables can be accessed and changed via a mutable reference. Variables passed as argument map back to the original variable. Except for a case where the scopes stack isnt handled correctly. To short lifetimes references are also rejected, eq a function that would try to return a referenced variable were the owner of that variable goes out of scope at the end of the function is an error.
+
 
 ## Your LLVM/Crane-Lift backend (optional)
 
