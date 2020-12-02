@@ -193,6 +193,8 @@ An expression can either be a
 - b, boolean
 - f, function
 
+Commands can also evaluate into unit which defined as ().
+
 Sequence
 
 <img src="https://render.githubusercontent.com/render/math?math=\frac{<c0,\sigma> \Downarrow \sigma' <c1,\sigma'> \Downarrow \sigma''}{<c0%3Bc1,\sigma> \Downarrow \sigma''}">
@@ -207,11 +209,11 @@ Operations
 
 Infix:
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow n1 <e2, \sigma>\Downarrow n2}{e1 %40 e2,\sigma\Downarrow n} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow n1, \sigma' <e2, \sigma'>\Downarrow n2,\sigma''}{e1 %40 e2,\sigma\Downarrow n, \sigma''} ">
 
 Prefix: 
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow n1}{%40 e1,\sigma\Downarrow n} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow n1, \sigma'}{%40 e1,\sigma\Downarrow n,\sigma'} ">
 
 The @ sign represents one of the implemented arithmetic operations
 
@@ -248,19 +250,19 @@ are also defined where a & or &mut makes a reference to a variable that the dere
 
 If/Else true
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow true <c1,\sigma>\Downarrow\sigma'}{<if\%3Btrue\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow\sigma'} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow true <c1,\sigma>\Downarrow n, \sigma'}{<if\%3Btrue\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow n, \sigma'} ">
 
 If/Else false 
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow false <c2,\sigma>\Downarrow\sigma'}{<if\%3Bfalse\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow\sigma'} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow false <c2,\sigma>\Downarrow n, \sigma'}{<if\%3Bfalse\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow n, \sigma'} ">
 
 If true
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow true <c1,\sigma>\Downarrow\sigma'}{<if\%3Btrue\%3Bthen\%3B c1, \sigma>\Downarrow\sigma'} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow true <c1,\sigma>\Downarrow n, \sigma'}{<if\%3Btrue\%3Bthen\%3B c1, \sigma>\Downarrow n, \sigma'} ">
 
 If false
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow false <c1,\sigma>\Downarrow\sigma}{<if\%3Bfalse\%3Bthen\%3B c1, \sigma>\Downarrow\sigma} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow false <c1,\sigma>\Downarrow (), \sigma}{<if\%3Bfalse\%3Bthen\%3B c1, \sigma>\Downarrow (), \sigma} ">
 
 
 ```rust
@@ -275,11 +277,11 @@ if false {
 ```
  While true
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma >\Downarrow true \%3B<c1,\sigma>\Downarrow\sigma' <while\%3B e \%3B do\%3B c, \sigma'>\Downarrow\sigma''}{<while\%3B true \%3B do \%3B c,\sigma>\Downarrow\sigma'' } ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma >\Downarrow true \%3B<c1,\sigma>\Downarrow (), \sigma' <while\%3B e \%3B do\%3B c, \sigma'>\Downarrow (), \sigma''}{<while\%3B true \%3B do \%3B c,\sigma>\Downarrow (), \sigma'' } ">
 
 While false
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma >\Downarrow false \%3B<c1,\sigma>\Downarrow\sigma' <while\%3B e\%3B do\%3B c, \sigma'>\Downarrow\sigma''}{<while\%3B false \%3B do \%3B c,\sigma>\Downarrow\sigma' } ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma >\Downarrow false \%3B<c1,\sigma>\Downarrow (), \sigma' <while\%3B e\%3B do\%3B c, \sigma'>\Downarrow (), \sigma''}{<while\%3B false \%3B do \%3B c,\sigma>\Downarrow (), \sigma' } ">
 
 ```rust
 while a<5 {
@@ -287,10 +289,11 @@ while a<5 {
 };
 ```
 Both if/else and while commands have their blocks evaluted or skipped based on the condition given.
+If/else statements can all evaluate into a expression, but while cannot.
 
 Let assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow n <let \text{ } x%3A=n, \sigma>\Downarrow\sigma'}{<let \text{ } x %3A= e, \sigma> \Downarrow \sigma[x %3A= n]} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow n <let \text{ } x%3A=n, \sigma>\Downarrow\sigma'}{<let \text{ } x %3A= n, \sigma> \Downarrow \sigma[x %3A= n]} ">
 
 ```rust
 let a:i32 = 5 * 3;
@@ -365,11 +368,11 @@ The types implemented are
 Operations
 Infix:
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32 <e2, \sigma>\Downarrow i32}{e1 %40 e2,\sigma\Downarrow i32} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32, \sigma' <e2, \sigma'>\Downarrow i32,\sigma''}{e1 %40 e2,\sigma\Downarrow i32} ">
 
 Prefix: 
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32}{%40 e1,\sigma\Downarrow i32} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32, \sigma'}{%40 e1,\sigma\Downarrow i32, \sigma'} ">
 
 ```rust
 1+1;
@@ -381,7 +384,7 @@ The sign @ represents all the supported operations which are given in the sectio
 
 If/Else
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool <c1,\sigma>\Downarrow i32<c2,\sigma>\Downarrow i32}{<if\%3Bbool\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow i32} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool <c1,\sigma>\Downarrow i32, \sigma'<c2,\sigma'>\Downarrow i32,\sigma''}{<if\%3Bbool\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow i32, \sigma''} ">
 
 ```rust
 if 5 {//Error not bool
@@ -402,7 +405,7 @@ To note is that aslong as both of c1 and c2 evaluate into the same type everythi
 
  if
 
- <img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool <c,\sigma>\Downarrow i32}{<if\%3Bbool\%3Bthen\%3B c \%3B, \sigma>\Downarrow i32} ">
+ <img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool,\sigma' <c,\sigma'>\Downarrow i32,\sigma''}{<if\%3Bbool\%3Bthen\%3B c \%3B, \sigma>\Downarrow i32,\sigma''} ">
 
  ```rust
 if 5 {//Error not bool type
@@ -413,7 +416,7 @@ if true {};//works
 
 while 
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool <c,\sigma>\Downarrow unit}{<while\%3Bbool\%3Bthen\%3B c \%3B, \sigma>\Downarrow unit} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool,\sigma' <c,\sigma'>\Downarrow (),\sigma''}{<while\%3Bbool\%3Bthen\%3B c \%3B, \sigma>\Downarrow (),\sigma''} ">
 
 ```rust
 while 5 {//Error not bool type
@@ -425,7 +428,7 @@ In the type-checker there is no big difference to a while loop or if/else. It ch
 
 Let assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow i32 <let \text{ } x%3A=i32, \sigma>\Downarrow\sigma'}{<let \text{ } x %3A= e, \sigma> \Downarrow \sigma[x %3A= n]} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow i32 <let \text{ } x%3A=i32, \sigma>\Downarrow\sigma'}{<let \text{ } x %3A= e, \sigma> \Downarrow \sigma[x %3A= i32]} ">
 
 ```rust
 let a:i32 = false;//error
@@ -438,7 +441,7 @@ All types are implmented in a similar way to above. To note is that the type-che
 
 Assignment
 
-$$\frac{}{<x := i32, σ> ⇓ σ[x := i32]}$$
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow i32 <x%3A=i32,\sigma>\Downarrow\sigma'}{<x%3A= i32, \sigma> \Downarrow \sigma[x%3A= i32]} ">
 
 ```rust
 let a:i32 = 1;//works
@@ -455,19 +458,30 @@ let e:&mut i32 = &mut b;
 The last example shows how references can be used with assignments, when left hand side is dereferenced it gets the variable b instead and assigns the left hand side to it.
 
 
-Return
+Function call
 
-$$\frac{<f, σ>⇓σ}{< i32, σ> ⇓ σ[i32]}$$
+<img src="https://render.githubusercontent.com/render/math?math=\frac{< f(p), \sigma>\Downarrow i32<f(p),\sigma>\Downarrow\sigma'}{<f(p),\sigma>\Downarrow i32} ">
 
 ```rust
-fn a() -> () {};//works
-fn b() -> i32 {5};//works
-fn c() -> bool {false};//works
-fn d() -> () {true};//type error
-fn e() -> &i32 {let a:i32 = 5;&a};//works in type-checking not interpreter
+a(5,1,true,!false);
+b(c(),h*3,&g, &mut j);
+```
+A function call looks the same for each other type it can evaluate into. In the typechecker the parameters are checked versus the arguments so that the types match, and then the return type is set as the function call. No evaluation of the function is needed here.
+
+Return
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<c_0, \sigma>\Downarrow \sigma' <c_1, \sigma'> \Downarrow \sigma'' ... <c_n, \sigma^n>\Downarrow i32}{<c_0%3Bc_1%3B...%3Bc_n,\sigma>\Downarrow i32,\sigma^n} ">
+
+```rust
+fn a() -> i32 {
+	let a:i32 = 5;
+	a //returns 5
+};
 ```
 
 The implicit return must match the declared return type of the function.
+
+Of note about the typechecker is that it scans from top to bottom and checks each type. This means that function calls only do lookups in a hashmap for the function name and verifies the types. This hashmap is made at the start off the typechecker before any commands have been evaluated.
 
  To implement the underlying functionality for borrow checking assignments have to support dereference on the left side. This made me have to redo the parser to support operations on the left side.
 
