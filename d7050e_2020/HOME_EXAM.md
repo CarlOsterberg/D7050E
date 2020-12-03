@@ -171,8 +171,8 @@ fn  main() -> () {
 ```
 The EBNF above describe a small subset of Rust with Function declarations with explicit return type being either Unit () or one of the primitive types.
 The primitive types are i32 and boolean.
-Supported statements are let, assigments, if/else, while, implicit returns all with explicit types.
-Expression operands have a few different categories, infix operations which are split into arithmetic and boolean algebraic operations. In retrospect less than and greater than has been wrongly grouped as boolean algebraic operations, but for development it made sense beacause they all evaluate into a boolean. Supported prefix operations are negation, subtraction, reference, mutable reference and dereference. Parenthesized expression have precedence, prefix operations have precedence over infix operations and arithmetic operations before boolean operations. FactorOp has precedence over BinOp.
+Supported statements are let, assignments, if/else, while, implicit returns all with explicit types.
+Expression operands have a few different categories, infix operations which are split into arithmetic and boolean algebraic operations. In retrospect less than and greater than has been wrongly grouped as boolean algebraic operations, but for development it made sense because they all evaluate into a boolean. Supported prefix operations are negation, subtraction, reference, mutable reference and dereference. Parenthesized expression have precedence, prefix operations have precedence over infix operations and arithmetic operations before boolean operations. FactorOp has precedence over BinOp.
 Error recovery is not implemented.
 
 
@@ -186,34 +186,35 @@ Error recovery is not implemented.
 - c, command
 - x, variable
 - e, expression
-- p, parameters (detailed below)
 
 An expression can either be a
 - n, number
 - b, boolean
 - f, function
 
+For clarity v is used instead of number n or boolean b.
+
 Commands can also evaluate into unit which defined as ().
 
 Sequence
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<c0,\sigma> \Downarrow \sigma' <c1,\sigma'> \Downarrow \sigma''}{<c0%3Bc1,\sigma> \Downarrow \sigma''}">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<c0,\sigma> \Downarrow \sigma' <c1,\sigma'> \Downarrow <v,\sigma''>}{<c0%3Bc1,\sigma> \Downarrow <v, \sigma''>}">
 
 ```rust
 let a:i32 = 5;
 a();
 ```
-A sequence is chain of commands where the first one is executed then the seconds command and so forth. If this wasnt the case the commands wouldnt infuence the next ones correctly, the state σ' would be lost.
+A sequence is chain of commands where the first one is executed then the seconds command and so forth. If this wasn't the case the commands wouldn't influence the next ones correctly, the state σ' would be lost.
 
 Operations
 
 Infix:
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow n1, \sigma' <e2, \sigma'>\Downarrow n2,\sigma''}{e1 %40 e2,\sigma\Downarrow n, \sigma''} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow v1, \sigma' <e2, \sigma'>\Downarrow v2,\sigma''}{e1 %40 e2,\sigma\Downarrow <(), \sigma''>} ">
 
 Prefix: 
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow n1, \sigma'}{%40 e1,\sigma\Downarrow n,\sigma'} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow <v, \sigma'>}{%40 e1,\sigma\Downarrow <(),\sigma'>} ">
 
 The @ sign represents one of the implemented arithmetic operations
 
@@ -250,19 +251,19 @@ are also defined where a & or &mut makes a reference to a variable that the dere
 
 If/Else true
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow true <c1,\sigma>\Downarrow n, \sigma'}{<if\%3Btrue\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow n, \sigma'} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow true <c1,\sigma>\Downarrow <v, \sigma'>}{<if\%3Btrue\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow <v, \sigma'>} ">
 
 If/Else false 
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow false <c2,\sigma>\Downarrow n, \sigma'}{<if\%3Bfalse\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow n, \sigma'} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow false <c2,\sigma>\Downarrow <v, \sigma'>}{<if\%3Bfalse\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow <v, \sigma'>} ">
 
 If true
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow true <c1,\sigma>\Downarrow n, \sigma'}{<if\%3Btrue\%3Bthen\%3B c1, \sigma>\Downarrow n, \sigma'} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow true <c1,\sigma>\Downarrow <(), \sigma'>}{<if\%3Btrue\%3Bthen\%3B c1, \sigma>\Downarrow <(), \sigma'>} ">
 
 If false
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow false <c1,\sigma>\Downarrow (), \sigma}{<if\%3Bfalse\%3Bthen\%3B c1, \sigma>\Downarrow (), \sigma} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow false <c1,\sigma>\Downarrow <(), \sigma>}{<if\%3Bfalse\%3Bthen\%3B c1, \sigma>\Downarrow <(), \sigma>} ">
 
 
 ```rust
@@ -288,12 +289,12 @@ while a<5 {
 	a = a + 1;
 };
 ```
-Both if/else and while commands have their blocks evaluted or skipped based on the condition given.
+Both if/else and while commands have their blocks evaluated or skipped based on the condition given.
 If/else statements can all evaluate into a expression, but while cannot.
 
 Let assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow n <let \text{ } x%3A=n, \sigma>\Downarrow\sigma'}{<let \text{ } x %3A= n, \sigma> \Downarrow \sigma[x %3A= n]} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow v}{<let \text{ } x \text{ %3A= } e, \sigma> \Downarrow <(), \sigma[x \text{%3A= v}]>} ">
 
 ```rust
 let a:i32 = 5 * 3;
@@ -309,7 +310,7 @@ let e:&bool = &d;
 ```
 Assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow n <x%3A=n,\sigma>\Downarrow\sigma'}{<x%3A= n, \sigma> \Downarrow \sigma[x%3A= n]} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow v }{<x\text{%3A=} e, \sigma> \Downarrow (),\sigma[x\text{%3A=} v]} ">
 
 ```rust
 a = 5;
@@ -320,30 +321,29 @@ e = &mut b;
 ```
 The evaluated expression on the right side is moved to the already declared variable on the left. The left hand variable has to be declared mutable for assignments to be possible.
 
-Parameter
+Function
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e_0,\sigma> \Downarrow n_0, \sigma' <e_1,\sigma'> \Downarrow n_1, \sigma'' ... <e_n,\sigma^n> \Downarrow n_n, \sigma^{n}}{<e_0,e_0,...,e_n, \sigma>\Downarrow n_0, n_0,...,n_n,\sigma^n}">
+The syntax for function declarations must be done as follows.
+
+<img src="https://render.githubusercontent.com/render/math?math=f(p_0%3Apt_0,...,p_n%3Apt_n)\text{-> }t">
+
+Then functions are evaluated as follows.
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e_0,\sigma> \Downarrow <v_0, \sigma'>  ... <e_n,\sigma^n> \Downarrow <n_n, \sigma^{n}><f.c,\sigma^{n}[p_0=v_0,...,p_n=v_n]>\Downarrow<v,\sigma^R>}{<f(e_0,e_1,...,e_n),\sigma>\Downarrow<v,\sigma^R>}">
 
 ```rust
 5,7,true,&mut 5,a()
 1+3+4+5,h,!false
 ```
-Parameters are evaluated from left to right, this is important beacause some expressions may change the state.
-A parameter may be of any type, except unit type, which is reserved for when a function shouldnt return anything.
+Parameters are evaluated from left to right, this is important because some expressions may change the state.
+A parameter may be of any type, except unit type, which is reserved for when a function shouldn't return anything.
 
-Function call
-
-<img src="https://render.githubusercontent.com/render/math?math=\frac{< f(p), \sigma>\Downarrow n<f(p),\sigma>\Downarrow\sigma'}{<f(p),\sigma>\Downarrow n} ">
 
 ```rust
 a(5,1,true,!false);
 b(c(),h*3,&g, &mut j);
 ```
-A function call looks the same for each other type it can evaluate into. The function f takes the parametres p and evatuates into a value of some type. A function call can alter the state of the program.
-
-Return
-
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<c_0, \sigma>\Downarrow \sigma' <c_1, \sigma'> \Downarrow \sigma'' ... <c_n, \sigma^n>\Downarrow n}{<c_0%3Bc_1%3B...%3Bc_n,\sigma>\Downarrow n,\sigma^n} ">
+A function call looks the same for each other type it can evaluate into. The function f takes the parameters p and evaluates into a value of some type. A function call can alter the state of the program.
 
 ```rust
 fn a() -> i32 {
@@ -351,9 +351,10 @@ fn a() -> i32 {
 	a //returns 5
 };
 ```
+
 If the last command in a function evaluates to an expression, that is moved to the state of the function.
 
-In Rust everything has a type, even statements, and following that implicit returns become easy to introduce. In the vein of following Rust implementation implict returns are implemented. While the requirements stated explicit returns, implicit ones do the same thing, but with less freedom.  Other then that the implementation follows the requirements.
+In Rust everything has a type, even statements, and following that implicit returns become easy to introduce. In the vein of following Rust implementation implicit returns are implemented. While the requirements stated explicit returns, implicit ones do the same thing, but with less freedom.  Other then that the implementation follows the requirements.
 
 ## Your type checker
 
@@ -365,26 +366,28 @@ The types implemented are
 - Reference
 - Mutable Reference
 
+These are abstracted away to t.
+
 Operations
 Infix:
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32, \sigma' <e2, \sigma'>\Downarrow i32,\sigma''}{e1 %40 e2,\sigma\Downarrow i32} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow t, \sigma' <e2, \sigma'>\Downarrow t,\sigma''}{e1 %40 e2,\sigma\Downarrow (), \sigma''} ">
 
 Prefix: 
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32, \sigma'}{%40 e1,\sigma\Downarrow i32, \sigma'} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow t, \sigma'}{%40 e1,\sigma\Downarrow (), \sigma'} ">
 
 ```rust
 1+1;
 1 + true; //Error
 ```
 
-The sign @ represents all the supported operations which are given in the section above. For bool type the operations look the same. The unit type is reserved for function return types.
+The sign @ represents all the supported operations which are given in the section above. For bool type the operations look the same.
 
 
 If/Else
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool <c1,\sigma>\Downarrow i32, \sigma'<c2,\sigma'>\Downarrow i32,\sigma''}{<if\%3Bbool\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow i32, \sigma''} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool <c1,\sigma>\Downarrow t, \sigma'<c2,\sigma'>\Downarrow t,\sigma''}{<if\%3Bbool\%3Bthen\%3B c1 \%3Belse\%3Bc2, \sigma>\Downarrow t, \sigma''} ">
 
 ```rust
 if 5 {//Error not bool
@@ -405,7 +408,7 @@ To note is that aslong as both of c1 and c2 evaluate into the same type everythi
 
  if
 
- <img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow bool,\sigma' <c,\sigma'>\Downarrow i32,\sigma''}{<if\%3Bbool\%3Bthen\%3B c \%3B, \sigma>\Downarrow i32,\sigma''} ">
+ <img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma>\Downarrow <bool,\sigma'> <c,\sigma'>\Downarrow (),\sigma''}{<if\%3Bbool\%3Bthen\%3B c \%3B, \sigma>\Downarrow (),\sigma''} ">
 
  ```rust
 if 5 {//Error not bool type
@@ -424,11 +427,11 @@ while 5 {//Error not bool type
 };
 while true {};//works
 ```
-In the type-checker there is no big difference to a while loop or if/else. It checks both the condition and the block as it doesnt care about the actual value only the type that is evaluated into. To note is that if the if/else statement doesnt return anything its type becomes unit, otherwise it gets the type of the return, so it acts like a function without parameters. While is always handled as type unit.
+In the type-checker there is no big difference to a while loop or if/else. It checks both the condition and the block as it doesn't care about the actual value only the type that is evaluated into. To note is that if the if/else statement doesn't return anything its type becomes unit, otherwise it gets the type of the return, so it acts like a function without parameters. While is always handled as type unit.
 
 Let assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow i32 <let \text{ } x%3A=i32, \sigma>\Downarrow\sigma'}{<let \text{ } x %3A= e, \sigma> \Downarrow \sigma[x %3A= i32]} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow t}{<let \text{ } x \text{%3A=} e, \sigma> \Downarrow (), \sigma[x \text{%3A=} t]} ">
 
 ```rust
 let a:i32 = false;//error
@@ -437,17 +440,17 @@ let mut c:i32 = 3;//works
 let t:&mut i32 = &mut c;//works
 ```
 
-All types are implmented in a similar way to above. To note is that the type-checker doesnt implement any borrow checking as it doesnt keep track of what variable it was assigned to, only that variable type.
+All types are implemented in a similar way to above. To note is that the type-checker doesn't implement any borrow checking as it doesn't keep track of what variable it was assigned to, only that variable type.
 
 Assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow i32 <x%3A=i32,\sigma>\Downarrow\sigma'}{<x%3A= i32, \sigma> \Downarrow \sigma[x%3A= i32]} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow t }{<x\text{%3A=} t, \sigma> \Downarrow <(), \sigma[x\text{%3A=} t]}>">
 
 ```rust
 let a:i32 = 1;//works
 a = 5;//Error not mutable
 let mut b:i32 = 5;
-b = true;//Error type missmatch
+b = true;//Error type mismatch
 b = 6;//works
 let c:&i32 = &a;//works
 let d:i32 = *c;//works
@@ -457,10 +460,16 @@ let e:&mut i32 = &mut b;
 
 The last example shows how references can be used with assignments, when left hand side is dereferenced it gets the variable b instead and assigns the left hand side to it.
 
+Function
 
-Function call
+A function is defined as  follows
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{< f(p), \sigma>\Downarrow i32<f(p),\sigma>\Downarrow\sigma'}{<f(p),\sigma>\Downarrow i32} ">
+<img src="https://render.githubusercontent.com/render/math?math=f(p_0%3Apt_0,...,p_n%3Apt_n)\text{-> }t">
+
+Then functions are evaluated as follows.
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e_0,\sigma> \Downarrow pt_1  ... <e_n,\sigma> \Downarrow pt_n<f.c,\sigma>\Downarrow f.t}{<f(e_0,e_1,...,e_n),\sigma>\Downarrow<f.t,\sigma>}">
+
 
 ```rust
 a(5,1,true,!false);
@@ -468,9 +477,6 @@ b(c(),h*3,&g, &mut j);
 ```
 A function call looks the same for each other type it can evaluate into. In the typechecker the parameters are checked versus the arguments so that the types match, and then the return type is set as the function call. No evaluation of the function is needed here.
 
-Return
-
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<c_0, \sigma>\Downarrow \sigma' <c_1, \sigma'> \Downarrow \sigma'' ... <c_n, \sigma^n>\Downarrow i32}{<c_0%3Bc_1%3B...%3Bc_n,\sigma>\Downarrow i32,\sigma^n} ">
 
 ```rust
 fn a() -> i32 {
@@ -485,9 +491,9 @@ Of note about the typechecker is that it scans from top to bottom and checks eac
 
  To implement the underlying functionality for borrow checking assignments have to support dereference on the left side. This made me have to redo the parser to support operations on the left side.
 
-## Your borrrow checker
+## Your borrow checker
 
-The borrow-checker checks operations surronding references. Refrences should not allow for data races, therefor if a variable is referenced, the referenced varaible shouldnt be able to be changed. 
+The borrow-checker checks operations surrounding references. References should not allow for data races, therefor if a variable is referenced, the referenced variable shouldn't be able to be changed. 
 ```rust
 let mut a:i32 = 5;
 let b:&i32 = &a;
@@ -504,7 +510,7 @@ let a:i32 = 5;
 let b:&i32 = &a;
 let c:&i32 = &a; //Works
 ```
-Multiple mutable references arent allowed to the same variable. 
+Multiple mutable references aren't allowed to the same variable. 
 ```rust
 let mut a:i32 = 5;
 let b:&mut i32 = &a;
@@ -520,7 +526,7 @@ let mut d:i32 = 11;
 let e:&mut i32 = &mut d;
 let f:&i32 = &d; //Error
 ```
-Also beacuse of ownership in rust, whenever a variables owner goes out of scope, the variable goes out of scope. This has implications for references beacuse they dont own the variable they reference. Therefor references shouldnt have longer lifetimes then the variable they reference.
+Also because of ownership in rust, whenever a variables owner goes out of scope, the variable goes out of scope. This has implications for references because they don't own the variable they reference. Therefor references shouldn't have longer lifetimes then the variable they reference.
 ```rust
 fn a() -> i32 {
 	*b(5);
