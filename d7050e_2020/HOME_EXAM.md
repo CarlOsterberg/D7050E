@@ -210,11 +210,27 @@ Operations
 
 Infix:
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow v1, \sigma' <e2, \sigma'>\Downarrow v2,\sigma''}{e1 %40 e2,\sigma\Downarrow <(), \sigma''>} ">
+@ = {+,-,*,/}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow n1, \sigma' <e2, \sigma'>\Downarrow n2,\sigma''}{e1 %40 e2,\sigma\Downarrow <n, \sigma''>} ">
+
+\# = {<,>,==}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow n1, \sigma' <e2, \sigma'>\Downarrow n2,\sigma''}{e1 %23 e2,\sigma\Downarrow <b, \sigma''>} ">
+
+? = {&&,||,==}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow b1, \sigma' <e2, \sigma'>\Downarrow b2,\sigma''}{e1 %40 e2,\sigma\Downarrow <b, \sigma''>} ">
 
 Prefix: 
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow <v, \sigma'>}{%40 e1,\sigma\Downarrow <(),\sigma'>} ">
+@ = {-}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow <n, \sigma'>}{%40 e1,\sigma\Downarrow <n,\sigma'>} ">
+
+@ = {!}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow <b, \sigma'>}{%40 e1,\sigma\Downarrow <b,\sigma'>} ">
 
 The @ sign represents one of the implemented arithmetic operations
 
@@ -294,7 +310,7 @@ If/else statements can all evaluate into a expression, but while cannot.
 
 Let assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow v}{<let \text{ } x \text{ %3A= } e, \sigma> \Downarrow <(), \sigma[x \text{%3A= v}]>} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow v}{<let \text{ } x \text{ %3A= } e, \sigma> \Downarrow <v, \sigma[x \text{%3A= v}]>} ">
 
 ```rust
 let a:i32 = 5 * 3;
@@ -371,11 +387,27 @@ These are abstracted away to t.
 Operations
 Infix:
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow t, \sigma' <e2, \sigma'>\Downarrow t,\sigma''}{e1 %40 e2,\sigma\Downarrow (), \sigma''} ">
+@ = {+,-,/,*}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32< e2, \sigma> \Downarrow i32}{<e1 %40 e2,\sigma>\Downarrow i32} ">
+
+\# = {<,>,==}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32 < e2,\sigma > \Downarrow i32}{<e1 %23 e2,\sigma>\Downarrow bool} ">
+
+? = {&&,||,==}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow bool <e2, \sigma>\Downarrow bool}{<e1 %3F e2,\sigma>\Downarrow bool} ">
 
 Prefix: 
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow t, \sigma'}{%40 e1,\sigma\Downarrow (), \sigma'} ">
+@ = {-}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow i32}{%40 e1,\sigma\Downarrow i32} ">
+
+\# = {!}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow bool}{%23 e1,\sigma\Downarrow bool} ">
 
 ```rust
 1+1;
@@ -444,7 +476,7 @@ All types are implemented in a similar way to above. To note is that the type-ch
 
 Assignment
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow t }{<x\text{%3A=} t, \sigma> \Downarrow <(), \sigma[x\text{%3A=} t]}>">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e,\sigma> \Downarrow t ,\sigma[x\text{=} t]}{<x \text{%3A=} e, \sigma>\Downarrow ()}">
 
 ```rust
 let a:i32 = 1;//works
@@ -464,9 +496,9 @@ Function
 
 A function is defined as  follows
 
-<img src="https://render.githubusercontent.com/render/math?math=f(p_0%3Apt_0,...,p_n%3Apt_n)\text{-> }t">
+<img src="https://render.githubusercontent.com/render/math?math=f(p_0%3Apt_0,...,p_n%3Apt_n)\text{-> }f.t">
 
-Then functions are evaluated as follows.
+Then functions are evaluated as follows, to note is that f.c are the commands in the body of the function and f.t is the declared return type as seen above in the declaration.
 
 <img src="https://render.githubusercontent.com/render/math?math=\frac{<e_0,\sigma> \Downarrow pt_1  ... <e_n,\sigma> \Downarrow pt_n<f.c,\sigma>\Downarrow f.t}{<f(e_0,e_1,...,e_n),\sigma>\Downarrow<f.t,\sigma>}">
 
