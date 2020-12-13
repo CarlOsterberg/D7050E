@@ -220,7 +220,7 @@ Infix:
 
 ? = {&&,||,==}
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow b1, \sigma' <e2, \sigma'>\Downarrow b2,\sigma''}{e1 %40 e2,\sigma\Downarrow <b, \sigma''>} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow b1, \sigma' <e2, \sigma'>\Downarrow b2,\sigma''}{e1 %3F e2,\sigma\Downarrow <b, \sigma''>} ">
 
 Prefix: 
 
@@ -228,9 +228,9 @@ Prefix:
 
 <img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow <n, \sigma'>}{%40 e1,\sigma\Downarrow <n,\sigma'>} ">
 
-@ = {!}
+\# = {!}
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow <b, \sigma'>}{%40 e1,\sigma\Downarrow <b,\sigma'>} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow <b, \sigma'>}{%230 e1,\sigma\Downarrow <b,\sigma'>} ">
 
 The @ sign represents one of the implemented arithmetic operations
 
