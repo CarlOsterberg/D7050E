@@ -226,13 +226,35 @@ Prefix:
 
 @ = {-}
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow <n, \sigma'>}{%40 e1,\sigma\Downarrow <n,\sigma'>} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow <n, \sigma'>}{%40 e,\sigma\Downarrow <n,\sigma'>} ">
 
 \# = {!}
 
-<img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow <b, \sigma'>}{%230 e1,\sigma\Downarrow <b,\sigma'>} ">
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow <b, \sigma'>}{%23 e,\sigma\Downarrow <b,\sigma'>} ">
 
-The @ sign represents one of the implemented arithmetic operations
+
+Here the operation * is dereference. Also: ? = {&}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow <x,\sigma'> \sigma'[x] = ?y}{<*e, \sigma > \Downarrow y,\sigma'}">
+
+For mutable references it looks pretty similar, ¤ = {&mut}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow <x,\sigma'> \sigma'[x] = \text{¤}y}{<*e, \sigma > \Downarrow \text{mut y},\sigma'}">
+
+And the other way around, ? = {&}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow <*x,\sigma'> \sigma'[x] = y}{<?e, \sigma > \Downarrow y,\sigma'}">
+
+And the same for mutable references ¤ = {&mut}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow <*\text{mut x},\sigma'> \sigma'[x] = \text{mut y}}{<\text{¤}e, \sigma > \Downarrow \text{mut y},\sigma'}">
+
+And on and on it goes ...
+
+
+
+
+The signs represents one of the implemented arithmetic operations
 
 - +, plus
 - -, minus
@@ -408,6 +430,24 @@ Prefix:
 \# = {!}
 
 <img src="https://render.githubusercontent.com/render/math?math=\frac{<e1, \sigma>\Downarrow bool}{%23 e1,\sigma\Downarrow bool} ">
+
+Here the operation * is dereference. Also: ? = {&}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow <x> \sigma[x] = ?t}{<*e, \sigma > \Downarrow t}">
+
+For mutable references it looks pretty similar, ¤ = {&mut}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow <x> \sigma[x] = \text{¤}t}{<*e, \sigma > \Downarrow \text{mut t},}">
+
+And the other way around, ? = {&}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow <*x> \sigma[x] = t}{<?e, \sigma > \Downarrow t}">
+
+And the same for mutable references ¤ = {&mut}
+
+<img src="https://render.githubusercontent.com/render/math?math=\frac{<e, \sigma>\Downarrow <*\text{mut x}> \sigma[x] = \text{mut t}}{<\text{¤}e, \sigma > \Downarrow \text{mut t}}">
+
+And on and on it goes ...
 
 ```rust
 1+1;
